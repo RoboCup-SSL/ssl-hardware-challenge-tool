@@ -1,0 +1,129 @@
+from __future__ import annotations
+from math import sqrt, pow, pi
+from aux.utils import red_print
+
+BLUE_TEAM = 'BLUE'
+YELLOW_TEAM = 'YELLOW'
+
+MAX_FRAMES_UNSEEN = 50
+DISTANCE_THRESHOLD = 90  # [mm]
+ORIENTATION_THRESHOLD = 5 * pi/180.0  # [rad]
+
+
+class Position(object):
+    def __init__(self, x=0, y=0, orientation=0):
+        self.x = x
+        self.y = y
+        self.orientation = float(orientation)
+
+    def __repr__(self):
+        return '({}, {}, {:.3f})'.format(self.x, self.y, self.orientation)
+
+    def distance(self, pos) -> int:
+        return round(sqrt(pow(self.x - pos.x, 2) + pow(self.y - pos.y, 2)))
+
+    def distance_orientation(self, pos) -> float:
+        return abs(self.orientation - pos.orientation)
+
+# =============================================================================
+
+
+class VisionObject(object):
+    def __init__(self):
+        self.unseen_frames = MAX_FRAMES_UNSEEN
+        self.pos = Position()
+
+    def update(self, **kargs):
+        raise NotImplementedError()
+
+    def in_vision(self) -> bool:
+        return self.unseen_frames > 0
+
+# =============================================================================
+
+
+class Robot(VisionObject):
+    def __init__(self, **kargs):
+        super().__init__()
+        self.id = -1
+        self.team = BLUE_TEAM
+
+        for key, value in kargs.items():
+            if key == 'robot_id':
+                self.id = value
+            elif key == 'pos':
+                self.pos = value
+            elif key == 'team':
+                self.team = value
+            elif key == 'obj':
+                self.pos = Position(*tuple(value['pos']))
+            elif key == 'id':
+                self.id = value['number']
+                self.team = value['color']
+
+    def __repr__(self):
+        if self.in_vision():
+            return 'Robot {}/{} = {}'.format(self.id, self.team, self.pos)
+        return ''
+
+    def update(self,  **kargs):
+        is_robot = False
+        pos = None
+
+        for key, value in kargs.items():
+            if key == 'id':
+                if value['number'] == self.id and value['color'] == self.team:
+                    is_robot = True
+
+            elif key == 'obj':
+                pos = Position(*tuple(value['pos']))
+
+        if is_robot and pos != None:
+            self.pos = pos
+            self.unseen_frames = MAX_FRAMES_UNSEEN
+
+        elif self.in_vision():
+            self.unseen_frames = self.unseen_frames - 1
+
+    def compare(self, data: Robot):
+        if self.pos.distance(data.pos) < DISTANCE_THRESHOLD and \
+           self.pos.distance_orientation(data.pos) < ORIENTATION_THRESHOLD and \
+                self.id == data.id:
+            return True
+        return False
+
+# =============================================================================
+
+
+class Ball(VisionObject):
+    def __init__(self, pos=None):
+        super().__init__()
+
+        if pos != None:
+            self.pos = pos
+
+    def __repr__(self):
+        return 'Ball = {}'.format(self.pos)
+
+    def update(self, **kargs):
+        pos = None
+        for key, data in kargs.items():
+            if 'pos' == key:
+                pos = Position(*tuple(data['pos']))
+
+        if pos == None:
+            red_print('Ball update | No position given in {}'.format(kargs))
+            return
+
+        if self.in_vision():
+            if pos.distance(Position()) != 0:
+                self.unseen_frames = MAX_FRAMES_UNSEEN
+                self.pos = pos
+        else:
+            self.unseen_frames = MAX_FRAMES_UNSEEN
+            self.pos = pos
+
+        self.unseen_frames = self.unseen_frames - 1
+
+    def compare(self, data: Ball):
+        return self.pos.distance(data.pos) < DISTANCE_THRESHOLD
