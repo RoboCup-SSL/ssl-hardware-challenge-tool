@@ -11,13 +11,14 @@ automatically.
 
 - Python 3.8.5
   - [WebSocket](https://pypi.org/project/websocket-client/)
+  - Pygame
 
 PS: Only tested in Ubuntu 20.04.
 
 To install the Python packages run
 
 ```shell
-pip3 install websocket-client
+pip3 install websocket-client pygame
 ```
 
 The project already contains de compiled .proto files for Python, but, in case

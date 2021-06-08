@@ -99,6 +99,7 @@ class PositionFSM(object):
 
     def check_positions_ok(self):
         # All objects are in the correct place
+        blue_print(self.challenge_pos_ok, '\r')
         if not any(np.invert(self.challenge_pos_ok)):
             if self.objects_in_place == False:
                 self.objects_in_place = True
@@ -106,7 +107,6 @@ class PositionFSM(object):
                 self.objects_t2 = CONFIRMATION_DT
 
                 green_print('All robots and ball are placed correctly!')
-                blue_print(self.challenge_pos_ok)
 
             elif self.objects_t2 > 0:
                 self.objects_t2 -= 1e-9*(time.time_ns() - self.objects_t1)

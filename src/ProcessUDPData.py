@@ -7,9 +7,9 @@ import numpy as np
 from socket import timeout as TimeoutException
 from multiprocessing import Queue, Process
 
-import messages_robocup_ssl_detection_pb2 as detection
-import messages_robocup_ssl_geometry_pb2 as geometry
-import messages_robocup_ssl_wrapper_pb2 as wrapper
+import ssl_vision_detection_pb2 as detection
+import ssl_vision_geometry_pb2 as geometry
+import ssl_wrapper_pb2 as wrapper
 import referee_pb2 as referee
 
 from aux.utils import red_print, blue_print, green_print, purple_print
