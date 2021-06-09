@@ -2,6 +2,7 @@ import pygame
 import pygame.freetype
 import time
 import numpy as np
+
 from multiprocessing import Process, Queue
 from math import sqrt, acos, pi, trunc, cos, sin
 
@@ -11,7 +12,6 @@ from aux.utils import red_print, blue_print, green_print, purple_print
 from aux.position_robot import Challenge_Data
 
 FIELD_LINE_PEN_SZ = 10
-DEFAULT_PEN_SZ = 2
 SCREEN_SIZE = [800, 600]
 
 BALL_RADIUS = 42  # a bit bigger just to be more visible
@@ -31,7 +31,6 @@ ORANGE_C = (255, 153, 0)  # = #ff9900
 
 
 class DrawSSL(object):
-
     def __init__(self):
         self.ui_init = False
 
@@ -41,11 +40,6 @@ class DrawSSL(object):
         self.blue_robots = []
         self.yellow_robots = []
         self.challenge_positions = []
-
-# =============================================================================
-
-    def __del__(self):
-        pass
 
 # =============================================================================
 
@@ -64,9 +58,7 @@ class DrawSSL(object):
 
                 pygame.display.update()
 
-
 # =============================================================================
-
 
     def event_loop(self):
         for event in pygame.event.get():
@@ -162,11 +154,6 @@ class DrawSSL(object):
 
 # =============================================================================
 
-    def clear(self):
-        pass
-
-# =============================================================================
-
     def draw_field(self, scaled_field: np.array):
         pygame.draw.rect(self.window, 'white', width=FIELD_LINE_PEN_SZ,
                          rect=(0, 0, scaled_field[0], scaled_field[1]))
@@ -185,11 +172,9 @@ class DrawSSL(object):
 
 # =============================================================================
 
-
     def draw_ball(self, scaled_field: np.array):
-        ball_p = self.scale(self.ball)
-        pygame.draw.circle(self.window, 'orange',
-                           self.adjust_axis(ball_p, scaled_field),
+        ball_p = self.scale(self.ball, scaled_field)
+        pygame.draw.circle(self.window, ORANGE_C, ball_p,
                            self.scale_val(BALL_RADIUS))
 
 # =============================================================================
@@ -209,11 +194,9 @@ class DrawSSL(object):
 
     def draw_bot(self, pos: np.array, orientation: float, color,
                  scaled_field: np.array, id: int):
-        b_pos = self.scale(pos)
-        b_pos = self.adjust_axis(b_pos, scaled_field)
-
-        id_pos = self.scale(pos - np.array([0.6*BOT_RADIUS, -0.5*BOT_RADIUS]))
-        id_pos = self.adjust_axis(id_pos, scaled_field)
+        b_pos = self.scale(pos, scaled_field)
+        id_pos = self.scale(pos - np.array([0.6*BOT_RADIUS, -0.5*BOT_RADIUS]),
+                            scaled_field)
 
         bot_rad = self.scale_val(BOT_RADIUS)
         bot_teta = self.convert_orientation(orientation)
@@ -223,7 +206,7 @@ class DrawSSL(object):
         self.font.render_to(self.window, id_pos, '{}'.format(id), (0, 0, 0))
 
         b_pos = b_pos + angle_vec
-        angle_pos = b_pos + 0.5*angle_vec
+        angle_pos = b_pos + angle_vec
         pygame.draw.line(self.window, 'red', b_pos, angle_pos, 3)
 
     def convert_orientation(self, orientation) -> float:
@@ -243,32 +226,32 @@ class DrawSSL(object):
 
     def draw_challenges_positions(self, scaled_field: np.array):
         color = BLUE_C
-        draw_orientation = True
         for position in self.challenge_positions:
+            draw_orientation = True
+            text_c = BLACK_C
+
             if position.type == BLUE_TEAM:
                 color = C_BLUE_C
-                draw_orientation = True
             elif position.type == YELLOW_TEAM:
                 color = D_YELLOW_C
-                draw_orientation = True
             elif position.type == BALL:
                 color = ORANGE_C
                 draw_orientation = False
 
             if position.ok:
                 color = GREEN_C
+                text_c = GREEN_C
 
             id_pos = position.pos.to_numpy()
-            id_pos = self.scale(id_pos + np.array([BOT_RADIUS, 2*BOT_RADIUS]))
-            id_pos = self.adjust_axis(id_pos, scaled_field)
+            id_pos = self.scale(id_pos + np.array([BOT_RADIUS, 2*BOT_RADIUS]),
+                                scaled_field)
 
-            c_pos = self.scale(position.pos.to_numpy())
-            c_pos = self.adjust_axis(c_pos, scaled_field)
+            c_pos = self.scale(position.pos.to_numpy(), scaled_field)
             c_rad = self.scale_val(BOT_RADIUS)
             pygame.draw.circle(self.window, color, c_pos, c_rad, width=4)
 
             self.font.render_to(self.window, id_pos, '{}'.format(position.id),
-                                (0, 0, 0))
+                                BLACK_C)
 
             if not draw_orientation:
                 continue
@@ -285,7 +268,7 @@ class DrawSSL(object):
             p_max = c_pos + angle_vec_max
             pos_ang = [p_max, p_min, c_pos]
 
-            pygame.draw.aalines(self.window, BLACK_C, True, pos_ang)
+            pygame.draw.aalines(self.window, text_c, True, pos_ang)
 
 
 # =============================================================================
@@ -315,9 +298,13 @@ class DrawSSL(object):
 
 # =============================================================================
 
-    def scale(self, pos: np.array) -> np.array:
+    def scale(self, pos: np.array, field_sz=None) -> np.array:
         scale_val = np.divide(np.array(SCREEN_SIZE), self.field_size)
-        return np.multiply(pos, scale_val)
+
+        if not isinstance(field_sz, np.ndarray):
+            return np.multiply(pos, scale_val)
+
+        return self.adjust_axis(np.multiply(pos, scale_val), field_sz)
 
     def scale_val(self, val) -> float:
         scale_val = np.divide(np.array(SCREEN_SIZE), self.field_size)

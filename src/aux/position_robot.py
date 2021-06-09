@@ -1,7 +1,9 @@
 import json
 import time
 import numpy as np
+
 from enum import Enum
+from tabulate import tabulate
 from os.path import isfile
 from aux.RobotBall import Position, Ball, Robot, BLUE_TEAM, YELLOW_TEAM, BALL
 from aux.utils import red_print, blue_print, green_print, purple_print
@@ -22,6 +24,13 @@ class Challenge_Data(Robot):
 
     def __repr__(self) -> str:
         return '{}/{}/{} = {}'.format(self.type, self.id, self.ok, self.pos)
+
+    def to_table_format(self) -> []:
+        obj = 'Robot {}'.format(self.type)
+        if self.type == BALL:
+            obj = 'Ball'
+        return [self.ok, obj, self.id,
+                self.pos.x, self.pos.y, self.pos.orientation]
 
     def from_Robot(self, robot: Robot):
         self.pos = robot.pos
@@ -53,6 +62,14 @@ class PositionFSM(object):
 
 # =============================================================================
 
+    def challenge_positions_print(self):
+        header = ['Positioned', 'Object', 'ID',
+                  'X [mm]', 'Y [mm]', 'Angle [rad]']
+        data = [line.to_table_format() for line in self.challenge_pos]
+        blue_print(tabulate(data, header), '\n')
+
+# =============================================================================
+
     def set_end_callback(self, callback_fn=None):
         if callback_fn != None:
             self.object_positioned_callback = callback_fn
@@ -81,36 +98,46 @@ class PositionFSM(object):
             [self.challenge_pos[n+int(self.use_ball)].from_Robot(Robot(obj=bot_data['obj'], id=bot_data['id']))
              for n, bot_data in enumerate(json_data['bots'])]
 
-        blue_print('Challenge data {}'.format(self.challenge_pos))
+        self.challenge_positions_print()
 
 # =============================================================================
 
     def update_positions(self, blue_robots: [Robot], yellow_robots: [Robot],
                          ball: Ball):
+        n_pos_ok = self.n_positions_ok()
         for pos_data in self.challenge_pos:
             pos_data.ok = False
             if pos_data.type == BLUE_TEAM:
                 for blue_robot in blue_robots:
                     if blue_robot.compare(pos_data):
                         pos_data.ok = True
+                        show_table = True
 
             elif pos_data.type == YELLOW_TEAM:
                 for yellow_robot in yellow_robots:
                     if yellow_robot.compare(pos_data):
                         pos_data.ok = True
+                        show_table = True
 
             elif pos_data.type == BALL:
                 if ball.compare(pos_data):
                     pos_data.ok = True
+                    show_table = True
 
         if self.state == PositionStates.POSITIONING:
             self.check_positions_ok()
+        if self.n_positions_ok() > n_pos_ok:
+            self.challenge_positions_print()
+
+# =============================================================================
+
+    def n_positions_ok(self) -> int:
+        return np.sum(np.array([data.ok for data in self.challenge_pos]))
 
 # =============================================================================
 
     def check_positions_ok(self):
         # All objects are in the correct place
-        #          blue_print(self.challenge_pos_ok, '\r')
         if not any(np.invert([data.ok for data in self.challenge_pos])):
             if self.objects_in_place == False:
                 self.objects_in_place = True
