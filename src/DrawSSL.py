@@ -120,7 +120,7 @@ class DrawSSL(object):
 
     def init_ui(self):
         pygame.init()
-        self.font = pygame.freetype.Font(r'./aux/Days.ttf', 12)
+        self.font = pygame.freetype.Font(r'../resources/Days.ttf', 14)
         self.font.antialiased = True
 
         self.canvas = pygame.Surface(SCREEN_SIZE)
@@ -131,7 +131,7 @@ class DrawSSL(object):
 # =============================================================================
 
     def start(self):
-        green_print('[UI] Start')
+        green_print('[UI] Started!\n\t Press Q/q or close the window to exit!')
         self.ui_queue = Queue()
         # 16 = MAX_ROBOTS
         self.process_queue = Queue(16*3 + 5)
@@ -264,7 +264,7 @@ class DrawSSL(object):
 
             c_pos = self.scale(position.pos.to_numpy())
             c_pos = self.adjust_axis(c_pos, scaled_field)
-            c_rad = self.scale_val(DISTANCE_THRESHOLD)
+            c_rad = self.scale_val(BOT_RADIUS)
             pygame.draw.circle(self.window, color, c_pos, c_rad, width=4)
 
             self.font.render_to(self.window, id_pos, '{}'.format(position.id),

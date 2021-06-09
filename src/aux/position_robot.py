@@ -27,6 +27,7 @@ class Challenge_Data(Robot):
         self.pos = robot.pos
         self.type = robot.team
         self.id = robot.id
+        self.unseen_frames = robot.unseen_frames
 
     def from_Ball(self, ball: Ball):
         self.pos = ball.pos
@@ -55,7 +56,7 @@ class PositionFSM(object):
     def set_end_callback(self, callback_fn=None):
         if callback_fn != None:
             self.object_positioned_callback = callback_fn
-            green_print('[Pos.] Callback Set!')
+            green_print('[POSITION FSM] Callback Set!')
 
 # =============================================================================
 

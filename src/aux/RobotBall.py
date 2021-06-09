@@ -9,7 +9,7 @@ YELLOW_TEAM = 'YELLOW'
 BALL = 'ORANGE'
 
 MAX_FRAMES_UNSEEN = 50
-DISTANCE_THRESHOLD = 90  # [mm]
+DISTANCE_THRESHOLD = 20  # [mm]
 ORIENTATION_THRESHOLD = 5 * pi/180.0  # [rad]
 INF = 999999999999
 
@@ -93,8 +93,11 @@ class Robot(VisionObject):
             self.unseen_frames = self.unseen_frames - 1
 
     def compare(self, data: Robot):
-        if self.pos.distance(data.pos) < DISTANCE_THRESHOLD and \
-           self.pos.distance_orientation(data.pos) < ORIENTATION_THRESHOLD and \
+        if not self.in_vision():
+            return False
+
+        if self.pos.distance(data.pos) <= DISTANCE_THRESHOLD and \
+           self.pos.distance_orientation(data.pos) <= ORIENTATION_THRESHOLD and \
                 self.id == data.id:
             return True
         return False
@@ -133,4 +136,7 @@ class Ball(VisionObject):
         self.unseen_frames = self.unseen_frames - 1
 
     def compare(self, data: Ball):
-        return self.pos.distance(data.pos) < DISTANCE_THRESHOLD
+        if not self.in_vision():
+            return False
+
+        return self.pos.distance(data.pos) <= DISTANCE_THRESHOLD

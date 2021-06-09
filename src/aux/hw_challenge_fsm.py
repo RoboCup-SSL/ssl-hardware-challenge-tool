@@ -49,12 +49,12 @@ class ChallengeFSM(object):
         elif challenge == 4:
             self.current_challenge = Challenge_4
 
-        green_print('[Ch. FSM] Challenge {} set!'.format(challenge))
+        green_print('[CHALLENGE FSM] Challenge {} set!'.format(challenge))
 
     def set_end_callback(self, callback_fn=None):
         if callback_fn != None:
             self.challenge_end_callback = callback_fn
-            green_print('[Ch. FSM] Callback set!')
+            green_print('[CHALLENGE FSM] Callback set!')
 
     def proceed_step(self):
         next_step = ChallengeSteps.next_step(self.current_step)
