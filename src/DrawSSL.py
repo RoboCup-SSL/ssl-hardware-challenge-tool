@@ -233,16 +233,14 @@ class DrawSSL(object):
             min_thr = c_teta - ORIENTATION_THRESHOLD
             max_thr = c_teta + ORIENTATION_THRESHOLD
 
-            angle_vec = 2*np.array([cos(c_teta)*c_rad, -sin(c_teta)*c_rad])
-            angle_vec_min = 2 * \
-                np.array([cos(min_thr)*c_rad, -sin(min_thr)*c_rad])
-            angle_vec_max = 2 * \
-                np.array([cos(max_thr)*c_rad, -sin(max_thr)*c_rad])
+            angle_vec = 2*c_rad*np.array([cos(c_teta), -sin(c_teta)])
+            angle_vec_min = 2 * c_rad * np.array([cos(min_thr), -sin(min_thr)])
+            angle_vec_max = 2 * c_rad * np.array([cos(max_thr), -sin(max_thr)])
 
             p = c_pos + angle_vec
             p_min = c_pos + angle_vec_min
             p_max = c_pos + angle_vec_max
-            pos_ang = [p_max, p_min, c_pos]
+            pos_ang = [p_max, p_min, c_pos, p]
 
             pygame.draw.circle(self.window, color, c_pos, c_rad, width=2)
             pygame.draw.aalines(self.window, BLACK_C, True, pos_ang, 3)
