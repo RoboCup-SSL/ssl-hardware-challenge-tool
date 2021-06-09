@@ -2,22 +2,28 @@ from __future__ import annotations
 from math import sqrt, pow, pi
 from aux.utils import red_print
 
+import numpy as np
+
 BLUE_TEAM = 'BLUE'
 YELLOW_TEAM = 'YELLOW'
 
 MAX_FRAMES_UNSEEN = 50
 DISTANCE_THRESHOLD = 90  # [mm]
 ORIENTATION_THRESHOLD = 5 * pi/180.0  # [rad]
+INF = 999999999999
 
 
 class Position(object):
-    def __init__(self, x=0, y=0, orientation=0):
+    def __init__(self, x=INF, y=INF, orientation=0):
         self.x = x
         self.y = y
         self.orientation = float(orientation)
 
     def __repr__(self):
         return '({}, {}, {:.3f})'.format(self.x, self.y, self.orientation)
+
+    def to_numpy(self) -> np.array:
+        return np.array([self.x, self.y])
 
     def distance(self, pos) -> int:
         return round(sqrt(pow(self.x - pos.x, 2) + pow(self.y - pos.y, 2)))

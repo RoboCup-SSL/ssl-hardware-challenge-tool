@@ -5,12 +5,12 @@ import time
 import numpy as np
 
 from socket import timeout as TimeoutException
-from multiprocessing import Queue, Process
 
 import ssl_vision_detection_pb2 as detection
 import ssl_vision_geometry_pb2 as geometry
 import ssl_wrapper_pb2 as wrapper
 import referee_pb2 as referee
+from ssl_vision_geometry_pb2 import SSL_GeometryData, SSL_GeometryFieldSize, SSL_FieldCircularArc
 
 from aux.utils import red_print, blue_print, green_print, purple_print
 from aux.RobotBall import BLUE_TEAM, YELLOW_TEAM
@@ -25,7 +25,7 @@ DEFAULT_REFEREE_IP = '224.5.23.1'
 
 class UDPCommunication(object):
     def __init__(self, v_port: int, v_group: str, r_port: int, r_group: str):
-        self.UDP_TIMEOUT = 0.05  # in seconds
+        self.UDP_TIMEOUT = 0.001  # in seconds
         self.v_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM,
                                       socket.IPPROTO_UDP)
         self.init_socket(self.v_socket, v_group, v_port)
@@ -101,31 +101,6 @@ class UDPCommunication(object):
 
 # =============================================================================
 
-    def start_scoket_receiving_data(self):
-        if DEBUG:
-            green_print('Starting UDP socket in parallel mode')
-        self.data_queue = Queue()
-        self.v_socket_process = Process(target=self.get_socket_data_mp)
-        self.v_socket_process.start()
-
-# =============================================================================
-
-    def stop_socket(self):
-        self.v_socket_process.kill()
-        self.v_socket.close()
-        if DEBUG:
-            green_print('Socket Process Stopped')
-
-# =============================================================================
-
-    def get_data(self) -> dict:
-        if not self.data_queue.empty():
-            data = self.data_queue.get_nowait()
-            return data
-        return None
-
-# =============================================================================
-
     def detection_frame_to_dict(self, detection_frame: detection.SSL_DetectionFrame) -> dict:
         frame_dict = dict()
 
@@ -158,12 +133,20 @@ class UDPCommunication(object):
 
         return frame_dict
 
-# =============================================================================
+    def geometry_frame_to_dict(self, geometry_frame: geometry.SSL_GeometryData) -> dict():
+        frame_dict = dict()
 
-    def get_socket_data_mp(self):
-        while True:
-            data = self.get_vision_socket_data()
-            self.data_queue.put_nowait(data)
+        if not isinstance(geometry_frame, geometry.SSL_GeometryData):
+            return frame_dict
+
+        if geometry_frame.field.field_length != 0:
+            frame_dict['field_size'] = [geometry_frame.field.field_length,
+                                        geometry_frame.field.field_width]
+            for arc in geometry_frame.field.field_arcs:
+                if arc.name == 'CenterCircle':
+                    frame_dict['center_circle'] = arc.radius
+            return frame_dict
+        return None
 
 # =============================================================================
 
@@ -175,7 +158,7 @@ class UDPCommunication(object):
             ok = True
 
         except TimeoutException:
-            pass
+            return (None, None)
 
         except Exception as except_type:
             if DEBUG:
@@ -184,7 +167,8 @@ class UDPCommunication(object):
         if ok:
             ok, det_data, geo_data = self.process_vision_packet(packet)
             if ok:
-                return (self.detection_frame_to_dict(det_data), geo_data)
+                return (self.detection_frame_to_dict(det_data),
+                        self.geometry_frame_to_dict(geo_data))
 
             else:
                 red_print('[UDP] Failed to process vision packet!', '\r')
@@ -197,11 +181,12 @@ class UDPCommunication(object):
     def get_referee_socket_data(self) -> dict:
         packet = b''
         ok = False
+        ret_val = None
         try:
             packet = self.r_socket.recv(4096)
             ok = True
         except TimeoutException:
-            pass
+            return None
 
         except Exception as except_type:
             if DEBUG:
@@ -210,25 +195,14 @@ class UDPCommunication(object):
         if ok:
             ok, ref_data = self.process_referee_packet(packet)
             if ok:
-                return {'Command': ref_data.Command.Name(ref_data.command)}
+                ret_val = {'Command': ref_data.Command.Name(ref_data.command)}
 
             else:
                 red_print('[UDP] Failed to process referee packet!', '\r')
+                ret_val = None
         else:
             red_print('[UDP] Failed to receive referee packet!', '\r')
-        return None
+            ret_val = None
+        return ret_val
 
 # =============================================================================
-
-
-#  if __name__ == '__main__':
-#      blue_print('Socket UDP Example\nThis will receive a single packet and exit\n')
-#      example = UDPCommunication()
-#      example.start_scoket_receiving_data()
-#
-#      while True:
-#          data = example.get_data()
-#          if data != None:
-#              green_print(data)
-#              #              break
-#      example.stop_socket()

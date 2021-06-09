@@ -91,9 +91,7 @@ class HWChallengeManager(object):
 
     def init_drawings(self):
         self.draw = DrawSSL()
-        self.draw.set_field_size((9000, 6000))
-        self.draw.set_center_circle_radius(1000)
-        self.draw.set_key_callback(self.end_program)
+        self.draw.start()
         self.running = True
 
 # =============================================================================
@@ -101,25 +99,35 @@ class HWChallengeManager(object):
     def update_vision_data(self):
         vision_data, geometry_data = self.udp_communication.get_vision_socket_data()
 
-        if geometry_data != None and geometry_data.field.field_length != 0:
-            pass
+        if geometry_data != None:
+            self.draw.set_field_size(geometry_data['field_size'])
+            self.draw.set_center_circle_radius(geometry_data['center_circle'])
 
         if vision_data != None:
             data_keys = list(vision_data.keys())
             if 'ball' in data_keys:
                 self.ball.update(pos=vision_data['ball'])
+                self.draw.update_ball(self.ball.pos)
 
             if 'bots' in data_keys:
+                blue_bots = []
+                yellow_bots = []
                 for robot in vision_data['bots']:
                     for r_id in range(MAX_ROBOTS):
                         self.blue_robots[r_id].update(obj=robot['obj'],
                                                       id=robot['id'])
+                        blue_bots.append(self.blue_robots[r_id].pos)
+
                         self.yellow_robots[r_id].update(obj=robot['obj'],
                                                         id=robot['id'])
+                        yellow_bots.append(self.yellow_robots[r_id].pos)
+
+                self.draw.update_robots(blue_bots, BLUE_TEAM)
+                self.draw.update_robots(yellow_bots, YELLOW_TEAM)
+
             self.check_challenge_positions()
-#          purple_print(self.blue_robots)
-#          purple_print(self.yellow_robots)
-#          purple_print(self.ball)
+            self.draw.update_challenge_data(
+                self.position_fsm.get_challenge_positions())
 
 # =============================================================================
 
@@ -177,4 +185,9 @@ if __name__ == "__main__":
         if manager.challenge_running:
             manager.run_challenge()
 
-    red_print('Quit')
+        ui_msg = manager.draw.get_ui_event()
+        if ui_msg == 'QUIT':
+            break
+
+    manager.draw.stop()
+    red_print('\nQuit')

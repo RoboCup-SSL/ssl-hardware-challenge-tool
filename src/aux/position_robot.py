@@ -99,7 +99,7 @@ class PositionFSM(object):
 
     def check_positions_ok(self):
         # All objects are in the correct place
-        blue_print(self.challenge_pos_ok, '\r')
+        #          blue_print(self.challenge_pos_ok, '\r')
         if not any(np.invert(self.challenge_pos_ok)):
             if self.objects_in_place == False:
                 self.objects_in_place = True
@@ -128,3 +128,8 @@ class PositionFSM(object):
             self.objects_in_place = False
             self.objects_t1 = 0
             self.objects_t1 = 0
+
+# =============================================================================
+
+    def get_challenge_positions(self) -> [Robot]:
+        return self.challenge_pos
