@@ -6,6 +6,7 @@ import numpy as np
 
 BLUE_TEAM = 'BLUE'
 YELLOW_TEAM = 'YELLOW'
+BALL = 'ORANGE'
 
 MAX_FRAMES_UNSEEN = 50
 DISTANCE_THRESHOLD = 90  # [mm]

@@ -1,12 +1,14 @@
 import pygame
+import pygame.freetype
 import time
 import numpy as np
 from multiprocessing import Process, Queue
 from math import sqrt, acos, pi, trunc, cos, sin
 
-from aux.RobotBall import Position, Robot, BLUE_TEAM, YELLOW_TEAM, INF,\
+from aux.RobotBall import Position, BLUE_TEAM, YELLOW_TEAM, BALL, INF,\
     DISTANCE_THRESHOLD, ORIENTATION_THRESHOLD
 from aux.utils import red_print, blue_print, green_print, purple_print
+from aux.position_robot import Challenge_Data
 
 FIELD_LINE_PEN_SZ = 10
 DEFAULT_PEN_SZ = 2
@@ -16,9 +18,16 @@ BALL_RADIUS = 42  # a bit bigger just to be more visible
 BOT_RADIUS = 90
 
 BLUE_C = 'blue'
+C_BLUE_C = (102, 204, 255)  # = #66ccff
+
 YELLOW_C = 'yellow'
-GREEN_C = 'green'
+D_YELLOW_C = (153, 102, 0)  # = #996600
+
+GREEN_C = (153, 255, 153)  # = #99ff99
+D_GREEN_C = (0, 102, 0)  # = #006600
 BLACK_C = 'black'
+
+ORANGE_C = (255, 153, 0)  # = #ff9900
 
 
 class DrawSSL(object):
@@ -57,6 +66,7 @@ class DrawSSL(object):
 
 
 # =============================================================================
+
 
     def event_loop(self):
         for event in pygame.event.get():
@@ -98,7 +108,7 @@ class DrawSSL(object):
 # =============================================================================
 
     def update_drawings(self):
-        self.window.fill(GREEN_C)
+        self.window.fill(D_GREEN_C)
 
         scaled_field = self.scale(self.field_size)
         self.draw_field(scaled_field)
@@ -110,6 +120,9 @@ class DrawSSL(object):
 
     def init_ui(self):
         pygame.init()
+        self.font = pygame.freetype.Font(r'./aux/Days.ttf', 12)
+        self.font.antialiased = True
+
         self.canvas = pygame.Surface(SCREEN_SIZE)
         flags = pygame.RESIZABLE
         self.window = pygame.display.set_mode(SCREEN_SIZE, flags)
@@ -130,6 +143,8 @@ class DrawSSL(object):
 
     def stop(self):
         self.process_queue.put({'END': True})
+        self.process.join()
+        pygame.quit()
 
 # =============================================================================
 
@@ -170,6 +185,7 @@ class DrawSSL(object):
 
 # =============================================================================
 
+
     def draw_ball(self, scaled_field: np.array):
         ball_p = self.scale(self.ball)
         pygame.draw.circle(self.window, 'orange',
@@ -179,26 +195,33 @@ class DrawSSL(object):
 # =============================================================================
 
     def draw_robots(self, scaled_field: np.array):
-        for bot in self.blue_robots:
+        for n, bot in enumerate(self.blue_robots):
             if bot.x < INF:
                 b_pos = np.array([bot.x, bot.y])
-                self.draw_bot(b_pos, bot.orientation, BLUE_C, scaled_field)
+                self.draw_bot(b_pos, bot.orientation, BLUE_C, scaled_field,
+                              n)
 
-        for bot in self.yellow_robots:
+        for n, bot in enumerate(self.yellow_robots):
             if bot.x < INF:
                 b_pos = np.array([bot.x, bot.y])
-                self.draw_bot(b_pos, bot.orientation, YELLOW_C, scaled_field)
+                self.draw_bot(b_pos, bot.orientation, YELLOW_C, scaled_field,
+                              n)
 
     def draw_bot(self, pos: np.array, orientation: float, color,
-                 scaled_field: np.array):
+                 scaled_field: np.array, id: int):
         b_pos = self.scale(pos)
         b_pos = self.adjust_axis(b_pos, scaled_field)
+
+        id_pos = self.scale(pos - np.array([0.6*BOT_RADIUS, -0.5*BOT_RADIUS]))
+        id_pos = self.adjust_axis(id_pos, scaled_field)
+
         bot_rad = self.scale_val(BOT_RADIUS)
         bot_teta = self.convert_orientation(orientation)
-
         angle_vec = np.array([cos(bot_teta)*bot_rad, -sin(bot_teta)*bot_rad])
 
         pygame.draw.circle(self.window, color, b_pos, bot_rad)
+        self.font.render_to(self.window, id_pos, '{}'.format(id), (0, 0, 0))
+
         b_pos = b_pos + angle_vec
         angle_pos = b_pos + 0.5*angle_vec
         pygame.draw.line(self.window, 'red', b_pos, angle_pos, 3)
@@ -220,34 +243,52 @@ class DrawSSL(object):
 
     def draw_challenges_positions(self, scaled_field: np.array):
         color = BLUE_C
+        draw_orientation = True
         for position in self.challenge_positions:
-            if position.team == BLUE_TEAM:
-                color = BLUE_C
-            else:
-                color = YELLOW_C
+            if position.type == BLUE_TEAM:
+                color = C_BLUE_C
+                draw_orientation = True
+            elif position.type == YELLOW_TEAM:
+                color = D_YELLOW_C
+                draw_orientation = True
+            elif position.type == BALL:
+                color = ORANGE_C
+                draw_orientation = False
+
+            if position.ok:
+                color = GREEN_C
+
+            id_pos = position.pos.to_numpy()
+            id_pos = self.scale(id_pos + np.array([BOT_RADIUS, 2*BOT_RADIUS]))
+            id_pos = self.adjust_axis(id_pos, scaled_field)
+
             c_pos = self.scale(position.pos.to_numpy())
             c_pos = self.adjust_axis(c_pos, scaled_field)
             c_rad = self.scale_val(DISTANCE_THRESHOLD)
+            pygame.draw.circle(self.window, color, c_pos, c_rad, width=4)
+
+            self.font.render_to(self.window, id_pos, '{}'.format(position.id),
+                                (0, 0, 0))
+
+            if not draw_orientation:
+                continue
+
             c_teta = self.convert_orientation(position.pos.orientation)
 
             min_thr = c_teta - ORIENTATION_THRESHOLD
             max_thr = c_teta + ORIENTATION_THRESHOLD
 
-            angle_vec = 2*c_rad*np.array([cos(c_teta), -sin(c_teta)])
             angle_vec_min = 2 * c_rad * np.array([cos(min_thr), -sin(min_thr)])
             angle_vec_max = 2 * c_rad * np.array([cos(max_thr), -sin(max_thr)])
 
-            p = c_pos + angle_vec
             p_min = c_pos + angle_vec_min
             p_max = c_pos + angle_vec_max
-            pos_ang = [p_max, p_min, c_pos, p]
+            pos_ang = [p_max, p_min, c_pos]
 
-            pygame.draw.circle(self.window, color, c_pos, c_rad, width=2)
-            pygame.draw.aalines(self.window, BLACK_C, True, pos_ang, 3)
+            pygame.draw.aalines(self.window, BLACK_C, True, pos_ang)
 
 
 # =============================================================================
-
 
     def update_robots(self, robots: [Position], team: str):
         if self.process.is_alive() and not self.process_queue.full():
@@ -267,7 +308,7 @@ class DrawSSL(object):
 
 # =============================================================================
 
-    def update_challenge_data(self, chl_data: [Robot]):
+    def update_challenge_data(self, chl_data: [Challenge_Data]):
         if self.process.is_alive() and not self.process_queue.full():
             self.challenge_positions = chl_data
             self.process_queue.put_nowait({'ChallengeP': chl_data})

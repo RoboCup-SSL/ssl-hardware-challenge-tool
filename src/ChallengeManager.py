@@ -116,11 +116,11 @@ class HWChallengeManager(object):
                     for r_id in range(MAX_ROBOTS):
                         self.blue_robots[r_id].update(obj=robot['obj'],
                                                       id=robot['id'])
-                        blue_bots.append(self.blue_robots[r_id].pos)
 
                         self.yellow_robots[r_id].update(obj=robot['obj'],
                                                         id=robot['id'])
-                        yellow_bots.append(self.yellow_robots[r_id].pos)
+                blue_bots.extend([bot.pos for bot in self.blue_robots])
+                yellow_bots.extend([bot.pos for bot in self.yellow_robots])
 
                 self.draw.update_robots(blue_bots, BLUE_TEAM)
                 self.draw.update_robots(yellow_bots, YELLOW_TEAM)

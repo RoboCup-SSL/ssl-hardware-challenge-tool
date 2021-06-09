@@ -3,7 +3,7 @@ import time
 import numpy as np
 from enum import Enum
 from os.path import isfile
-from aux.RobotBall import Position, Ball, Robot, BLUE_TEAM, YELLOW_TEAM
+from aux.RobotBall import Position, Ball, Robot, BLUE_TEAM, YELLOW_TEAM, BALL
 from aux.utils import red_print, blue_print, green_print, purple_print
 
 CONFIRMATION_DT = 2  # in seconds
@@ -12,6 +12,25 @@ CONFIRMATION_DT = 2  # in seconds
 class PositionStates(Enum):
     POSITIONING = 0,
     POSITIONED = 1
+
+
+class Challenge_Data(Robot):
+    def __init__(self):
+        super().__init__()
+        self.ok = False
+        self.type = BLUE_TEAM
+
+    def __repr__(self) -> str:
+        return '{}/{}/{} = {}'.format(self.type, self.id, self.ok, self.pos)
+
+    def from_Robot(self, robot: Robot):
+        self.pos = robot.pos
+        self.type = robot.team
+        self.id = robot.id
+
+    def from_Ball(self, ball: Ball):
+        self.pos = ball.pos
+        self.type = BALL
 
 
 class PositionFSM(object):
@@ -49,48 +68,39 @@ class PositionFSM(object):
             json_data = json.load(challenge_file)
 
         data_keys = list(json_data.keys())
+        self.challenge_pos = [Challenge_Data()
+                              for i in range(len(json_data['bots']) + 1)]
 
         if 'ball' in data_keys:
             self.use_ball = True
-            self.challenge_ball = Ball(
-                Position(*tuple(json_data['ball']['pos'])))
+            self.challenge_pos[0].from_Ball(
+                Ball(Position(*tuple(json_data['ball']['pos']))))
 
         if 'bots' in data_keys:
-            self.challenge_pos = [Robot(obj=bot_data['obj'], id=bot_data['id'])
-                                  for bot_data in json_data['bots']]
+            [self.challenge_pos[n+int(self.use_ball)].from_Robot(Robot(obj=bot_data['obj'], id=bot_data['id']))
+             for n, bot_data in enumerate(json_data['bots'])]
 
-        self.reset_challenge_pos_ok()
-
-        blue_print('Ball data {}'.format(self.challenge_ball))
-        blue_print('Bots data {}'.format(self.challenge_pos))
-
-# =============================================================================
-
-    def reset_challenge_pos_ok(self):
-        self.challenge_pos_ok = [False for i in range(len(self.challenge_pos))]
-
-        if self.use_ball:
-            self.challenge_pos_ok.append(False)  # Ball position
+        blue_print('Challenge data {}'.format(self.challenge_pos))
 
 # =============================================================================
 
     def update_positions(self, blue_robots: [Robot], yellow_robots: [Robot],
                          ball: Ball):
-        self.reset_challenge_pos_ok()
-
-        for n, pos_data in enumerate(self.challenge_pos):
-            if pos_data.team == BLUE_TEAM:
+        for pos_data in self.challenge_pos:
+            pos_data.ok = False
+            if pos_data.type == BLUE_TEAM:
                 for blue_robot in blue_robots:
                     if blue_robot.compare(pos_data):
-                        self.challenge_pos_ok[n] = True
+                        pos_data.ok = True
 
-            elif pos_data.team == YELLOW_TEAM:
+            elif pos_data.type == YELLOW_TEAM:
                 for yellow_robot in yellow_robots:
                     if yellow_robot.compare(pos_data):
-                        self.challenge_pos_ok[n] = True
+                        pos_data.ok = True
 
-        if self.use_ball and self.challenge_ball.compare(ball):
-            self.challenge_pos_ok[-1] = True
+            elif pos_data.type == BALL:
+                if ball.compare(pos_data):
+                    pos_data.ok = True
 
         if self.state == PositionStates.POSITIONING:
             self.check_positions_ok()
@@ -100,7 +110,7 @@ class PositionFSM(object):
     def check_positions_ok(self):
         # All objects are in the correct place
         #          blue_print(self.challenge_pos_ok, '\r')
-        if not any(np.invert(self.challenge_pos_ok)):
+        if not any(np.invert([data.ok for data in self.challenge_pos])):
             if self.objects_in_place == False:
                 self.objects_in_place = True
                 self.objects_t1 = time.time_ns()
@@ -131,5 +141,5 @@ class PositionFSM(object):
 
 # =============================================================================
 
-    def get_challenge_positions(self) -> [Robot]:
+    def get_challenge_positions(self) -> [Challenge_Data]:
         return self.challenge_pos
