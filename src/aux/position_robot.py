@@ -209,14 +209,6 @@ class PositionFSM(object):
                 if not ok:
                     msg = '[POSITION FSM] The robots must stay in the middle line (x = 0)'
 
-            elif type_of_restriction == 'BallDist':
-                ok, dist = self.current_challenge.check_restriction(robots[0].pos,
-                                                                    ball.pos)
-                if not ok:
-                    msg = """[POSITION FSM] The robot must be further away from
-                             the ball\n\t Current distance = {} mm, Minimum
-                             distance = {} mm""".format(dist,
-                                                        self.current_challenge.ball_dist)
             if len(msg) > 0 and not ok:
                 red_print(msg)
 
