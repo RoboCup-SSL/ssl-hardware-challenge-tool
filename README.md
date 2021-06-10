@@ -18,7 +18,7 @@ PS: Only tested in Ubuntu 20.04.
 To install the Python packages run
 
 ```shell
-pip3 install websocket-client pygame
+pip3 install websocket-client pygame tabulate
 ```
 
 The project already contains de compiled .proto files for Python, but, in case
@@ -34,18 +34,23 @@ the `proto` folder and then use the included script:
 Open the GameController and run the `ChallengeManager.py` with:
 
 ```shell
-python3 ChallengeManager.py -f <challenge_positions.json> -c <challenge_number>
+python3 src/ChallengeManager.py -f <challenge_positions.json> -c <challenge_number>
 ```
 
 - **challenge_positions.json**: is the .json file that contains the positions
   of the challenge.
 - **challenge_number**: is the **id** of the challenge, must be between 1 and
   4.
+  
+Example:
+```shell
+python3 src/ChallengeManager.py -f src/json_examples/challenge_1.json -c 1
+```
 
 For more information about the input arguments use:
 
 ```shell
-python3 ChallengeManager.py -h
+python3 src/ChallengeManager.py -h
 ```
 
 ### User Interface

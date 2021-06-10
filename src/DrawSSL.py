@@ -112,7 +112,7 @@ class DrawSSL(object):
 
     def init_ui(self):
         pygame.init()
-        self.font = pygame.freetype.Font(r'../resources/Days.ttf', 14)
+        self.font = pygame.freetype.Font(r'resources/Days.ttf', 14)
         self.font.antialiased = True
 
         self.canvas = pygame.Surface(SCREEN_SIZE)
