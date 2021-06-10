@@ -10,6 +10,8 @@ from aux.hw_challenge_4 import Challenge_4
 
 from aux.challenge_aux import ChallengeSteps, ChallengeEvents, Action
 
+ROBOT_STOP_TRESHOLD = 2  # in seconds
+
 
 class ChallengeFSM(object):
     def __init__(self):
@@ -23,12 +25,18 @@ class ChallengeFSM(object):
         self.dt_chl = [0, 0]
 
     def challenge_external_event(self, event: ChallengeEvents):
-        if event == ChallengeEvents.GOAL and self.current_challenge.id in [1, 2]:
+        if event == ChallengeEvents.GOAL and self.current_challenge.id in [1, 2] or \
+                event == ChallengeEvents.ROBOT_STOPPED and self.current_challenge.id == 3:
             self.proceed_step()
 
             if self.current_step == ChallengeSteps.STEP_0 and \
                     self.challenge_end_callback != None:
                 self.dt_chl[1] = time.time_ns() / 1e9
+
+                # Subtract the time used to consider if the robot stopped
+                if event == ChallengeEvents.ROBOT_STOPPED:
+                    self.dt_chl[1] = self.dt_chl[1] - ROBOT_STOP_TRESHOLD
+
                 blue_print('Stop challenge timer!')
 
                 self.challenge_end_callback()

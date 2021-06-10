@@ -5,6 +5,9 @@ from aux.GCSocket import GCCommands
 class Challenge_3(object):
     max_steps = 2
     id = 3
+    max_attack_robots = 0  # The robot is in the json file
+    min_attack_robots = 0
+    has_extra_data = False
 
     @staticmethod
     def Step(step: ChallengeSteps) -> Action:

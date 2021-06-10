@@ -6,7 +6,7 @@ import numpy as np
 from multiprocessing import Process, Queue
 from math import sqrt, acos, pi, trunc, cos, sin
 
-from aux.RobotBall import Position, BLUE_TEAM, YELLOW_TEAM, BALL, INF,\
+from aux.RobotBall import Robot, Position, BLUE_TEAM, YELLOW_TEAM, BALL, INF,\
     DISTANCE_THRESHOLD, ORIENTATION_THRESHOLD
 from aux.utils import red_print, blue_print, green_print, purple_print
 from aux.position_robot import Challenge_Data
@@ -20,7 +20,7 @@ BOT_RADIUS = 90
 BLUE_C = 'blue'
 C_BLUE_C = (102, 204, 255)  # = #66ccff
 
-YELLOW_C = 'yellow'
+YELLOW_C = (179, 179, 0)  # = #b3b300
 D_YELLOW_C = (153, 102, 0)  # = #996600
 
 GREEN_C = (153, 255, 153)  # = #99ff99
@@ -172,6 +172,7 @@ class DrawSSL(object):
 
 # =============================================================================
 
+
     def draw_ball(self, scaled_field: np.array):
         ball_p = self.scale(self.ball, scaled_field)
         pygame.draw.circle(self.window, ORANGE_C, ball_p,
@@ -180,17 +181,17 @@ class DrawSSL(object):
 # =============================================================================
 
     def draw_robots(self, scaled_field: np.array):
-        for n, bot in enumerate(self.blue_robots):
-            if bot.x < INF:
-                b_pos = np.array([bot.x, bot.y])
-                self.draw_bot(b_pos, bot.orientation, BLUE_C, scaled_field,
-                              n)
+        for bot in self.blue_robots:
+            if bot.pos.x < INF:
+                b_pos = np.array([bot.pos.x, bot.pos.y])
+                self.draw_bot(b_pos, bot.pos.orientation, BLUE_C, scaled_field,
+                              bot.id)
 
-        for n, bot in enumerate(self.yellow_robots):
-            if bot.x < INF:
-                b_pos = np.array([bot.x, bot.y])
-                self.draw_bot(b_pos, bot.orientation, YELLOW_C, scaled_field,
-                              n)
+        for bot in self.yellow_robots:
+            if bot.pos.x < INF:
+                b_pos = np.array([bot.pos.x, bot.pos.y])
+                self.draw_bot(b_pos, bot.pos.orientation, YELLOW_C, scaled_field,
+                              bot.id)
 
     def draw_bot(self, pos: np.array, orientation: float, color,
                  scaled_field: np.array, id: int):
@@ -248,7 +249,7 @@ class DrawSSL(object):
 
             c_pos = self.scale(position.pos.to_numpy(), scaled_field)
             c_rad = self.scale_val(BOT_RADIUS)
-            pygame.draw.circle(self.window, color, c_pos, c_rad, width=4)
+            pygame.draw.circle(self.window, color, c_pos, c_rad, width=2)
 
             self.font.render_to(self.window, id_pos, '{}'.format(position.id),
                                 BLACK_C)
@@ -273,7 +274,8 @@ class DrawSSL(object):
 
 # =============================================================================
 
-    def update_robots(self, robots: [Position], team: str):
+
+    def update_robots(self, robots: [Robot], team: str):
         if self.process.is_alive() and not self.process_queue.full():
             if team == YELLOW_TEAM:
                 self.yellow_robots = robots

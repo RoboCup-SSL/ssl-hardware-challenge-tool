@@ -15,7 +15,7 @@ from ssl_vision_geometry_pb2 import SSL_GeometryData, SSL_GeometryFieldSize, SSL
 from aux.utils import red_print, blue_print, green_print, purple_print
 from aux.RobotBall import BLUE_TEAM, YELLOW_TEAM
 
-DEBUG = True
+DEBUG = False
 DEFAULT_VISION_PORT = 10020
 DEFAULT_VISION_IP = '224.5.23.2'
 
@@ -50,8 +50,7 @@ class UDPCommunication(object):
     def __del__(self):
         try:
             self.v_socket.close()
-            if DEBUG:
-                blue_print('Closing UDP socket')
+            blue_print('Closing UDP socket')
         except Exception:
             pass
 
@@ -76,8 +75,7 @@ class UDPCommunication(object):
                 return (data_ok, wrapper_frame.detection, geometry_data)
 
             except Exception as except_type:
-                if DEBUG:
-                    red_print(except_type)
+                red_print(except_type)
 
         return (data_ok, detection.SSL_DetectionFrame(), geometry.SSL_GeometryData())
 
@@ -94,8 +92,7 @@ class UDPCommunication(object):
                 return (data_ok, referee_frame)
 
             except Exception as except_type:
-                if DEBUG:
-                    red_print(except_type)
+                red_print(except_type)
 
         return (data_ok, referee.SSL_Referee())
 
@@ -112,7 +109,7 @@ class UDPCommunication(object):
 
         # Use the mean in case there is more than one ball
         if len(ball_pos) > 0:
-            if len(ball_pos) > 1:
+            if len(ball_pos) > 1 and DEBUG:
                 red_print('WARNING! More than one ball detected')
             mean_pos = np.mean(np.array(ball_pos), axis=0)
             ball_pos = mean_pos.tolist()
@@ -161,8 +158,7 @@ class UDPCommunication(object):
             return (None, None)
 
         except Exception as except_type:
-            if DEBUG:
-                red_print('[UDP]', except_type)
+            red_print('[UDP]', except_type)
 
         if ok:
             ok, det_data, geo_data = self.process_vision_packet(packet)
@@ -189,8 +185,7 @@ class UDPCommunication(object):
             return None
 
         except Exception as except_type:
-            if DEBUG:
-                red_print('[UDP]', except_type)
+            red_print('[UDP]', except_type)
 
         if ok:
             ok, ref_data = self.process_referee_packet(packet)

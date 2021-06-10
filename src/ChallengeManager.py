@@ -1,5 +1,4 @@
 #!/usr/bin/python3.8
-import turtle
 import json
 import argparse
 import time
@@ -13,14 +12,21 @@ from DrawSSL import DrawSSL
 from aux.GCSocket import GCCommands, GCSocket
 from aux.position_robot import PositionFSM
 
-from aux.RobotBall import Robot, Ball, Position, BLUE_TEAM, YELLOW_TEAM
+from aux.RobotBall import Robot, Ball, Position, BLUE_TEAM, YELLOW_TEAM, \
+    DISTANCE_THRESHOLD, INF
 from aux.utils import red_print, blue_print, green_print, purple_print
 
-from aux.hw_challenge_fsm import ChallengeFSM
+from aux.hw_challenge_fsm import ChallengeFSM, ROBOT_STOP_TRESHOLD
 from aux.challenge_aux import ChallengeEvents
 
-DEBUG = True
+DEBUG = False
 MAX_ROBOTS = 16
+
+
+class SpecialBotPosition(Position):
+    def __init__(self):
+        super().__init__()
+        self.t = 0
 
 
 class HWChallengeManager(object):
@@ -35,15 +41,19 @@ class HWChallengeManager(object):
         self.gc_socket = GCSocket()
         self.gc_socket.send_command(GCCommands.HALT)
 
+        self.challenge_running = False
+        self.challenge_number = int(args['challenge_number'])
+
         self.position_fsm = PositionFSM(args['challenge_file'])
         self.position_fsm.set_end_callback(self.objects_positioned)
+        self.position_fsm.set_challenge(self.challenge_number)
 
-        self.challenge_running = False
         self.manager_fsm = ChallengeFSM()
-        self.manager_fsm.set_challenge(args['challenge_number'])
+        self.manager_fsm.set_challenge(self.challenge_number)
         self.manager_fsm.set_end_callback(self.challenge_end)
 
         # Init data
+        self.challenge_3_bot_pos = [SpecialBotPosition(), SpecialBotPosition()]
         self.ball = Ball()
         self.blue_robots = [Robot(team=BLUE_TEAM, robot_id=i)
                             for i in range(MAX_ROBOTS)]
@@ -61,7 +71,7 @@ class HWChallengeManager(object):
                                     default='./example.json')
             arg_parser.add_argument('-c', '--challenge-number', required=False,
                                     help='ID of the hardware challenge, must be between 1 and 4',
-                                    default=1)
+                                    default=2)
         else:
             arg_parser.add_argument('-f', '--challenge-file', required=True,
                                     help='JSON file that contains the challenge positioning')
@@ -117,10 +127,17 @@ class HWChallengeManager(object):
                         self.blue_robots[r_id].update(obj=robot['obj'],
                                                       id=robot['id'])
 
+                        if r_id == self.position_fsm.json_blue_id:
+                            self.update_challenge_3_bot_position(
+                                self.blue_robots[r_id].pos,
+                                self.position_fsm.get_pos(r_id, BLUE_TEAM))
+
                         self.yellow_robots[r_id].update(obj=robot['obj'],
                                                         id=robot['id'])
-                blue_bots.extend([bot.pos for bot in self.blue_robots])
-                yellow_bots.extend([bot.pos for bot in self.yellow_robots])
+                blue_bots.extend([bot for bot in self.blue_robots
+                                  if bot.in_vision()])
+                yellow_bots.extend([bot for bot in self.yellow_robots
+                                    if bot.in_vision()])
 
                 self.draw.update_robots(blue_bots, BLUE_TEAM)
                 self.draw.update_robots(yellow_bots, YELLOW_TEAM)
@@ -166,6 +183,42 @@ class HWChallengeManager(object):
 
         self.challenge_running = False
         self.running = False
+
+# =============================================================================
+
+    def update_challenge_3_bot_position(self, pos: Position, start_pos: Position):
+        if pos.x >= INF:
+            return
+
+        if self.challenge_number == 3 and self.challenge_running:
+            if self.challenge_3_bot_pos[0].t <= 0:
+                if DEBUG:
+                    purple_print('Start counting')
+                self.challenge_3_bot_pos[0].t = time.time_ns()/1e9
+                self.challenge_3_bot_pos[1].t = time.time_ns()/1e9
+                self.challenge_3_bot_pos[0].set_pos(pos)
+                self.challenge_3_bot_pos[1].set_pos(pos)
+            else:
+                self.challenge_3_bot_pos[1].t = time.time_ns()/1e9
+                self.challenge_3_bot_pos[1].set_pos(pos)
+
+            dist = self.challenge_3_bot_pos[1].distance(
+                self.challenge_3_bot_pos[0])
+
+            dist_start = self.challenge_3_bot_pos[0].distance(start_pos)
+            dt = self.challenge_3_bot_pos[1].t - self.challenge_3_bot_pos[0].t
+
+            if dist >= DISTANCE_THRESHOLD:
+                self.challenge_3_bot_pos[0].t = 0
+                self.challenge_3_bot_pos[1].t = 0
+
+            elif dt >= ROBOT_STOP_TRESHOLD:
+                if DEBUG:
+                    purple_print('Stop counting')
+                if dist <= DISTANCE_THRESHOLD and dist_start > 500:
+                    self.manager_fsm.challenge_external_event(
+                        ChallengeEvents.ROBOT_STOPPED)
+
 
 # =============================================================================
 

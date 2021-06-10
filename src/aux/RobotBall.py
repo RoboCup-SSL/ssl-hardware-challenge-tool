@@ -23,6 +23,10 @@ class Position(object):
     def __repr__(self):
         return '({}, {}, {:.3f})'.format(self.x, self.y, self.orientation)
 
+    def set_pos(self, pos: Position):
+        self.x = pos.x
+        self.y = pos.y
+
     def to_numpy(self) -> np.array:
         return np.array([self.x, self.y])
 
@@ -30,14 +34,14 @@ class Position(object):
         return round(sqrt(pow(self.x - pos.x, 2) + pow(self.y - pos.y, 2)))
 
     def distance_orientation(self, pos) -> float:
-        return abs(self.orientation - pos.orientation)
+        return abs(abs(self.orientation) - abs(pos.orientation))
 
 # =============================================================================
 
 
 class VisionObject(object):
     def __init__(self):
-        self.unseen_frames = MAX_FRAMES_UNSEEN
+        self.unseen_frames = 0
         self.pos = Position()
 
     def update(self, **kargs):

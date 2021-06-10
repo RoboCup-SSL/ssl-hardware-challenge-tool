@@ -1,10 +1,16 @@
+import numpy as np
 from aux.challenge_aux import ChallengeSteps, ChallengeEvents, Action
 from aux.GCSocket import GCCommands
+from aux.RobotBall import Robot, DISTANCE_THRESHOLD
 
 
 class Challenge_1(object):
     max_steps = 4
     id = 1
+    max_attack_robots = 3
+    min_attack_robots = 1
+    has_extra_data = True
+    robots_restriction = 'MiddleLine'
 
     @staticmethod
     def Step(step: ChallengeSteps) -> Action:
@@ -34,3 +40,13 @@ class Challenge_1(object):
     @staticmethod
     def Step_4() -> Action:
         return Action(False, timer=20)
+
+    @staticmethod
+    def check_restriction(robots: [Robot]) -> (bool, int):
+        away_from_line = [1 for bot in robots
+                          if abs(bot.pos.x) > DISTANCE_THRESHOLD and
+                          bot.in_vision()]
+
+        if np.sum(np.array(away_from_line)) > 0:
+            return False, 0
+        return True, 0

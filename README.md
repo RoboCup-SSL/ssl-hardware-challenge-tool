@@ -48,7 +48,7 @@ For more information about the input arguments use:
 python3 ChallengeManager.py -h
 ```
 
-## User Interface
+### User Interface
 
 The graphical user interface shows:
 
@@ -64,4 +64,20 @@ than **5⁰** of orientation error. (subject to change)
 If the object (robot/ball) is correctly placed, it's corresponding circle will
 turn light green, as shown in the image below.
 
-![SSL Hardware Challenge Tool](./resources/view_example.png)
+![SSL Hardware Challenge Tool](./resources/positioning.gif)
+
+### Warnings
+
+The tool will warn the user if there is any infliction of the rules of the challenge
+regarding the initial position, the warnings indicate:
+
+- If there are more defending robots (yellow) than the number defined in the
+  json
+- If there are more attacking robots (blue) than the number allowed for the
+  current challenge
+  - The 'Found' and 'Max' values in this warning mean, how many extra robots
+    are in the field, and how many extra robots are allowed, respectively. A
+    robot with its position defined in the json doesn't count
+
+- If the robots that do not have their position defined in the json are in a
+  valid position (usually the middle line)
