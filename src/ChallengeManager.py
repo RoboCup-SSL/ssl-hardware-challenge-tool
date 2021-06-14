@@ -81,7 +81,7 @@ class HWChallengeManager(object):
         arg_parser.add_argument('-p', '--vision-port', required=False,
                                 help='UDP Vision Port, default value is {}'.format(
                                     DEFAULT_VISION_PORT),
-                                default=DEFAULT_VISION_PORT)
+                                default=DEFAULT_VISION_PORT, type=int)
         arg_parser.add_argument('-i', '--vision-ip', required=False,
                                 help='UDP Vision IP, default value is {}'.format(
                                     DEFAULT_VISION_IP),
@@ -89,7 +89,7 @@ class HWChallengeManager(object):
         arg_parser.add_argument('-P', '--referee-port', required=False,
                                 help='UDP Referee Port, default value is {}'.format(
                                     DEFAULT_REFEREE_PORT),
-                                default=DEFAULT_REFEREE_PORT)
+                                default=DEFAULT_REFEREE_PORT, type=int)
         arg_parser.add_argument('-I', '--referee-ip', required=False,
                                 help='UDP Referee IP, default value is {}'.format(
                                     DEFAULT_REFEREE_IP),
