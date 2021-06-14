@@ -57,6 +57,7 @@ class DrawSSL(object):
                 self.event_loop()
 
                 pygame.display.update()
+                self.clock.tick(60)
 
 # =============================================================================
 
@@ -68,6 +69,10 @@ class DrawSSL(object):
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_q:
                     self.ui_queue.put_nowait('QUIT')
+            elif event.type == pygame.WINDOWRESIZED:
+                win_sz = self.window.get_size()
+                global SCREEN_SIZE
+                SCREEN_SIZE = [win_sz[0], win_sz[1]]
 
 # =============================================================================
 
@@ -114,6 +119,8 @@ class DrawSSL(object):
         pygame.init()
         self.font = pygame.freetype.Font(r'resources/Days.ttf', 14)
         self.font.antialiased = True
+
+        self.clock = pygame.time.Clock()
 
         self.canvas = pygame.Surface(SCREEN_SIZE)
         flags = pygame.RESIZABLE
@@ -172,11 +179,13 @@ class DrawSSL(object):
 
 # =============================================================================
 
-
     def draw_ball(self, scaled_field: np.array):
         ball_p = self.scale(self.ball, scaled_field)
-        pygame.draw.circle(self.window, ORANGE_C, ball_p,
-                           self.scale_val(BALL_RADIUS))
+
+        if isinstance(scaled_field, np.ndarray) or isinstance(ball_p, np.ndarray) or \
+                len(ball_p) + len(scaled_field) == 4:
+            pygame.draw.circle(self.window, ORANGE_C, ball_p,
+                               self.scale_val(BALL_RADIUS))
 
 # =============================================================================
 
@@ -195,6 +204,14 @@ class DrawSSL(object):
 
     def draw_bot(self, pos: np.array, orientation: float, color,
                  scaled_field: np.array, id: int):
+        # Both arguments must be a numpy array and have a length of 2 each
+        if not isinstance(scaled_field, np.ndarray) or \
+                not isinstance(pos, np.ndarray) or \
+                len(pos) + len(scaled_field) != 4:
+            red_print('Invalid data received ', pos, scaled_field, type(pos),
+                      type(scaled_field))
+            return
+
         b_pos = self.scale(pos, scaled_field)
         id_pos = self.scale(pos - np.array([0.6*BOT_RADIUS, -0.5*BOT_RADIUS]),
                             scaled_field)
@@ -251,9 +268,6 @@ class DrawSSL(object):
             c_rad = self.scale_val(BOT_RADIUS)
             pygame.draw.circle(self.window, color, c_pos, c_rad, width=2)
 
-            self.font.render_to(self.window, id_pos, '{}'.format(position.id),
-                                BLACK_C)
-
             if not draw_orientation:
                 continue
 
@@ -273,7 +287,6 @@ class DrawSSL(object):
 
 
 # =============================================================================
-
 
     def update_robots(self, robots: [Robot], team: str):
         if self.process.is_alive() and not self.process_queue.full():

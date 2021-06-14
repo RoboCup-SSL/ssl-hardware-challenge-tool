@@ -100,9 +100,9 @@ class Robot(VisionObject):
         if not self.in_vision():
             return False
 
+        # Do not consider the robot id
         if self.pos.distance(data.pos) <= DISTANCE_THRESHOLD and \
-           self.pos.distance_orientation(data.pos) <= ORIENTATION_THRESHOLD and \
-                self.id == data.id:
+                self.pos.distance_orientation(data.pos) <= ORIENTATION_THRESHOLD:
             return True
         return False
 
