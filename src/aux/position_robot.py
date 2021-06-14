@@ -156,12 +156,12 @@ class PositionFSM(object):
             blue_not_in_json = self.robot_ids_not_in_json(blue_robots)
             extra_robots_ok = True
 
-            if len(yellow_not_in_json) > 0:
+            if yellow_not_in_json > 0:
                 extra_robots_ok = False
                 red_print(
-                    '[POSITION FSM] There are extra yellow robots in the field, please remove them!')
+                    f'[POSITION FSM] There are {yellow_not_in_json} extra yellow robots in the field, please remove them!')
 
-            if len(blue_not_in_json) > 0:
+            if blue_not_in_json > 0:
                 extra_robots_ok = extra_robots_ok & self.check_extra_robots(blue_robots,
                                                                             blue_not_in_json,
                                                                             ball)
@@ -189,15 +189,15 @@ class PositionFSM(object):
                 '[POSITION FSM] Current challenge undefined, should not happen!')
             return False
 
-        if len(robot_ids) > self.max_attackers():
+        if robot_ids > self.max_attackers():
             ok = False
             red_print("""[POSITION FSM] There are extra blue robots in the field
-                         \t Found = {}, Max = {}""".format(len(robot_ids),
+                         \t Found = {}, Max = {}""".format(robot_ids,
                                                            self.max_attackers()))
-        elif len(robot_ids) < self.min_attackers():
+        elif robot_ids < self.min_attackers():
             ok = False
             red_print("""[POSITION FSM] Not enough blue robots in the field
-                         \t Found = {}, Min = {}""".format(len(robot_ids),
+                         \t Found = {}, Min = {}""".format(robot_ids,
                                                            self.min_attackers()))
 
         # If the number of robots is ok, check their positions
@@ -254,14 +254,13 @@ class PositionFSM(object):
 
 # =============================================================================
 
-    def robot_ids_not_in_json(self, robots: [Robot]) -> [int]:
-        challenge_ids = [data.id for data in self.challenge_pos
-                         if data.type == robots[0].team]
+    def robot_ids_not_in_json(self, robots: [Robot]) -> int:
+        challenge_ids = len([data.id for data in self.challenge_pos
+                             if data.type == robots[0].team])
 
-        ids_not_json = [robot.id for robot in robots
-                        if not challenge_ids.__contains__(robot.id) and robot.in_vision()]
+        ids_not_json = len([robot.id for robot in robots if robot.in_vision()])
 
-        return ids_not_json
+        return ids_not_json - challenge_ids
 
 # =============================================================================
 

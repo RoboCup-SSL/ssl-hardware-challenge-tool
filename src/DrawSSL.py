@@ -221,7 +221,12 @@ class DrawSSL(object):
         angle_vec = np.array([cos(bot_teta)*bot_rad, -sin(bot_teta)*bot_rad])
 
         pygame.draw.circle(self.window, color, b_pos, bot_rad)
-        self.font.render_to(self.window, id_pos, '{}'.format(id), (0, 0, 0))
+        try:
+            self.font.render_to(self.window, id_pos, f'{id}', (0, 0, 0))
+        except TypeError:
+            pass
+        except Exception as except_msg:
+            blue_print(id_pos, type(id_pos), except_msg)
 
         b_pos = b_pos + angle_vec
         angle_pos = b_pos + angle_vec
