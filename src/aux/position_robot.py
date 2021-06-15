@@ -13,6 +13,8 @@ from aux.hw_challenge_1 import Challenge_1
 from aux.hw_challenge_2 import Challenge_2
 from aux.hw_challenge_3 import Challenge_3
 from aux.hw_challenge_4 import Challenge_4
+from aux.tc_ball_placement import BallPlacement
+from aux.hw_challenge_fsm import MAX_CHALLENGES
 
 CONFIRMATION_DT = 2  # in seconds
 
@@ -57,6 +59,7 @@ class PositionFSM(object):
 
     def __init__(self, challenge_filename: str):
         self.use_ball = False
+        self.has_ball_placement_data = False
         self.json_blue_id = -1
         self.read_challenge_file(challenge_filename)
 
@@ -86,8 +89,9 @@ class PositionFSM(object):
 # =============================================================================
 
     def set_challenge(self, challenge: int):
-        if not isinstance(challenge, int) or (challenge < 1 or challenge > 4):
-            raise ValueError('Challenge ID must be between 1 and 4!')
+        if not isinstance(challenge, int) or (challenge < 1 or challenge > MAX_CHALLENGES):
+            raise ValueError(
+                f'Challenge ID must be between 1 and {MAX_CHALLENGES}!')
 
         if challenge == 1:
             self.current_challenge = Challenge_1
@@ -97,6 +101,8 @@ class PositionFSM(object):
             self.current_challenge = Challenge_3
         elif challenge == 4:
             self.current_challenge = Challenge_4
+        elif challenge == 5:
+            self.current_challenge = BallPlacement
 
 # =============================================================================
 
@@ -110,12 +116,27 @@ class PositionFSM(object):
 
         data_keys = list(json_data.keys())
 
-        n_bots = 0
+        n_bots, n_ball = 0, 0
         if 'bots' in data_keys:
             n_bots = len(json_data['bots'])
-        self.challenge_pos = [Challenge_Data() for i in range(n_bots + 1)]
-
         if 'ball' in data_keys:
+            n_ball = len(json_data['ball'])
+
+        self.challenge_pos = [Challenge_Data() for i in range(n_bots + 1)]
+        self.ball_placement_pos = Challenge_Data()
+
+        if n_ball > 1:
+            for n, ball_data in enumerate(json_data['ball']):
+                if n == 0:
+                    self.use_ball = True
+                    self.challenge_pos[0].from_Ball(
+                        Ball(Position(*tuple(ball_data['pos']))))
+
+                if n == 1:
+                    self.has_ball_placement_data = True
+                    self.ball_placement_pos.from_Ball(
+                        Ball(Position(*tuple(ball_data['pos']))))
+        else:
             self.use_ball = True
             self.challenge_pos[0].from_Ball(
                 Ball(Position(*tuple(json_data['ball']['pos']))))
@@ -285,3 +306,9 @@ class PositionFSM(object):
             if pos.id == id and pos.type == type:
                 return pos.pos
         return Position()
+
+    def get_placement(self) -> [int, int]:
+        if self.has_ball_placement_data:
+            return [self.ball_placement_pos.pos.x,
+                    self.ball_placement_pos.pos.y]
+        return [0, 0]

@@ -11,8 +11,9 @@ from aux.RobotBall import Robot, Position, BLUE_TEAM, YELLOW_TEAM, BALL, INF,\
 from aux.utils import red_print, blue_print, green_print, purple_print
 from aux.position_robot import Challenge_Data
 
-FIELD_LINE_PEN_SZ = 10
+FIELD_LINE_PEN_SZ = 6
 SCREEN_SIZE = [800, 600]
+FIELD_BORDER = 500
 
 BALL_RADIUS = 42  # a bit bigger just to be more visible
 BOT_RADIUS = 90
@@ -162,10 +163,13 @@ class DrawSSL(object):
 # =============================================================================
 
     def draw_field(self, scaled_field: np.array):
-        pygame.draw.rect(self.window, 'white', width=FIELD_LINE_PEN_SZ,
-                         rect=(0, 0, scaled_field[0], scaled_field[1]))
+        adj_border = self.scale_val(FIELD_BORDER)
 
-        for line in self.field_lines(scaled_field):
+        pygame.draw.rect(self.window, 'white', width=FIELD_LINE_PEN_SZ,
+                         rect=(adj_border[0], adj_border[1],
+                               scaled_field[0], scaled_field[1]))
+
+        for line in self.field_lines(scaled_field, adj_border):
             pygame.draw.line(self.window, 'white',
                              width=round(FIELD_LINE_PEN_SZ/2),
                              start_pos=line[0], end_pos=line[1])
@@ -174,7 +178,7 @@ class DrawSSL(object):
                            width=round(FIELD_LINE_PEN_SZ/2),
                            center=self.adjust_axis(np.array([0, 0]),
                                                    scaled_field),
-                           radius=self.scale_val(self.center_circle_radius))
+                           radius=self.scale_rad(self.center_circle_radius))
 
 
 # =============================================================================
@@ -185,7 +189,7 @@ class DrawSSL(object):
         if isinstance(scaled_field, np.ndarray) or isinstance(ball_p, np.ndarray) or \
                 len(ball_p) + len(scaled_field) == 4:
             pygame.draw.circle(self.window, ORANGE_C, ball_p,
-                               self.scale_val(BALL_RADIUS))
+                               self.scale_rad(BALL_RADIUS))
 
 # =============================================================================
 
@@ -216,7 +220,7 @@ class DrawSSL(object):
         id_pos = self.scale(pos - np.array([0.6*BOT_RADIUS, -0.5*BOT_RADIUS]),
                             scaled_field)
 
-        bot_rad = self.scale_val(BOT_RADIUS)
+        bot_rad = self.scale_rad(BOT_RADIUS)
         bot_teta = self.convert_orientation(orientation)
         angle_vec = np.array([cos(bot_teta)*bot_rad, -sin(bot_teta)*bot_rad])
 
@@ -270,7 +274,7 @@ class DrawSSL(object):
                                 scaled_field)
 
             c_pos = self.scale(position.pos.to_numpy(), scaled_field)
-            c_rad = self.scale_val(BOT_RADIUS)
+            c_rad = self.scale_rad(BOT_RADIUS)
             pygame.draw.circle(self.window, color, c_pos, c_rad, width=2)
 
             if not draw_orientation:
@@ -319,29 +323,44 @@ class DrawSSL(object):
 # =============================================================================
 
     def scale(self, pos: np.array, field_sz=None) -> np.array:
-        scale_val = np.divide(np.array(SCREEN_SIZE), self.field_size)
+        field_sz_border = self.field_size + \
+            np.array([2*FIELD_BORDER, 2*FIELD_BORDER])
+        scale_val = np.divide(np.array(SCREEN_SIZE), field_sz_border)
 
         if not isinstance(field_sz, np.ndarray):
             return np.multiply(pos, scale_val)
 
         return self.adjust_axis(np.multiply(pos, scale_val), field_sz)
 
-    def scale_val(self, val) -> float:
-        scale_val = np.divide(np.array(SCREEN_SIZE), self.field_size)
+    def scale_val(self, val) -> [float, float]:
+        field_sz_border = self.field_size + \
+            np.array([2*FIELD_BORDER, 2*FIELD_BORDER])
+        scale_val = np.divide(np.array(SCREEN_SIZE), field_sz_border)
+
+        return val * scale_val
+
+    def scale_rad(self, val) -> float:
+        field_sz_border = self.field_size + \
+            np.array([2*FIELD_BORDER, 2*FIELD_BORDER])
+        scale_val = np.divide(np.array(SCREEN_SIZE), field_sz_border)
+
         return val * sqrt(scale_val[0]**2 + scale_val[1]**2)
 
     def adjust_axis(self, pos: np.array, field_sz: np.array) -> np.array:
+        border = self.scale_val(FIELD_BORDER)
         adj_p = np.add(pos, field_sz/2)
         adj_p[1] = field_sz[1] - adj_p[1]
+        adj_p = np.add(adj_p, border)
+
         return adj_p
 
 # =============================================================================
 
-    def field_lines(self, field_sz=None):
-        l1 = np.array([[field_sz[0]/2, 0],
-                       [field_sz[0]/2, field_sz[1]]])
-        l2 = np.array([[0, field_sz[1]/2],
-                       [field_sz[0], field_sz[1]/2]])
+    def field_lines(self, field_sz: np.array, field_border: np.array):
+        l1 = np.array([[field_sz[0]/2 + field_border[0], field_border[1]],
+                       [field_sz[0]/2 + field_border[0], field_sz[1] + field_border[1]]])
+        l2 = np.array([[field_border[0], field_sz[1]/2 + field_border[1]],
+                       [field_sz[0] + field_border[0], field_sz[1]/2 + field_border[1]]])
 
         return [l1.tolist(), l2.tolist()]
 

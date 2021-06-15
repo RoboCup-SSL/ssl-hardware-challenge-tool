@@ -11,17 +11,19 @@ WEB_SOCKET_URL = 'ws://localhost:8081/api/control'
 
 
 class GCCommands(Enum):
-    NONE = 0,
-    HALT = 1,
-    STOP = 2,
-    FORCE_START = 3,
+    NONE = 0
+    HALT = 1
+    STOP = 2
+    FORCE_START = 3
     FREE_KICK = 4
+    BALL_PLACEMENT = 5
 
 
 class GCSocket(object):
     def __init__(self):
         self.w_socket = None
         self.RETRY_LIMIT = 20
+        self.placement_pos = [0, 0]
 
         while not self.connect_web_socket() and self.RETRY_LIMIT > 0:
             self.RETRY_LIMIT -= 1
@@ -48,6 +50,9 @@ class GCSocket(object):
         blue_print('Trying again...')
         return False
 
+    def set_placement_pos(self, pos: [int, int]):
+        self.placement_pos = pos
+
     def send_command(self, gc_command: GCCommands, team=None) -> bool:
         if team == None or (team != BLUE_TEAM and team != YELLOW_TEAM):
             team = 'UNKNOWN'
@@ -63,6 +68,18 @@ class GCSocket(object):
                     'The command {} must have a team associated, got {}'.format(cmd_str, team))
         else:
             cmd_str = gc_command.name
+
+        if gc_command == GCCommands.BALL_PLACEMENT:
+            if team == None:
+                raise ValueError(
+                    f'The command {cmd_str} must have a team associated, got {team}')
+
+            purple_print(
+                f'Set placement position = [{self.placement_pos[0]}, {self.placement_pos[1]}]')
+            data = '"x":{},"y":{}'.format(self.placement_pos[0],
+                                          self.placement_pos[1])
+            prepare_placement = '{"change":{"origin":"UI","revertible":true,"setBallPlacementPos":{"pos":{' + data + '}}}}'
+            self.w_socket.send(prepare_placement)
 
         try:
             cmd_str = '{"change":{"newCommand":{"command":{"type":"' + \

@@ -50,6 +50,7 @@ class ChallengeSteps(Enum):
 class ChallengeEvents(Enum):
     GOAL = 0,
     ROBOT_STOPPED = 1
+    STOP = 2
 
 
 class Action(object):

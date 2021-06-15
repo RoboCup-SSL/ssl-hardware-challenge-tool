@@ -13,7 +13,7 @@ automatically.
   - [WebSocket](https://pypi.org/project/websocket-client/)
   - Pygame
 
-PS: Only tested in Ubuntu 20.04.
+**PS**: Only tested in Ubuntu 20.04.
 
 To install the Python packages run
 
@@ -39,10 +39,12 @@ python3 src/ChallengeManager.py -f <challenge_positions.json> -c <challenge_numb
 
 - **challenge_positions.json**: is the .json file that contains the positions
   of the challenge.
-- **challenge_number**: is the **id** of the challenge, must be between 1 and
-  4.
-  
+- **challenge_number**: is the **id** of the challenge, must be between 1 and 5.
+
+**NOTE**: Challenge N⁰ 5 is the Technical Challenge - Ball Placement.
+
 Example:
+
 ```shell
 python3 src/ChallengeManager.py -f src/json_examples/challenge_1.json -c 1
 ```
@@ -57,9 +59,9 @@ python3 src/ChallengeManager.py -h
 
 The graphical user interface shows:
 
-- The position of each yellow robot: dark yellow circle with the robot **id**
-- The position of each blue robot:  light blue circle with the robot **id**
-- The position of the ball: orange circle with **id=-1**
+- The position of each yellow robot: dark yellow circle
+- The position of each blue robot:  light blue circle
+- The position of the ball: orange circle
 
 The colored circles indicate a threshold distance where the object must be
 placed, currently this threshold is **20mm** and **5⁰**. Therefore, the object

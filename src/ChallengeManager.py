@@ -48,6 +48,8 @@ class HWChallengeManager(object):
         self.position_fsm.set_end_callback(self.objects_positioned)
         self.position_fsm.set_challenge(self.challenge_number)
 
+        self.gc_socket.set_placement_pos(self.position_fsm.get_placement())
+
         self.manager_fsm = ChallengeFSM()
         self.manager_fsm.set_challenge(self.challenge_number)
         self.manager_fsm.set_end_callback(self.challenge_end)
@@ -151,11 +153,14 @@ class HWChallengeManager(object):
     def update_referee_data(self):
         referee_data = self.udp_communication.get_referee_socket_data()
 
-        if self.challenge_running and referee_data != None \
-                and (referee_data['Command'] == 'GOAL_BLUE' or
-                     referee_data['Command'] == 'GOAL_YELLOW'):
-            purple_print('\nGoal!')
-            self.manager_fsm.challenge_external_event(ChallengeEvents.GOAL)
+        if self.challenge_running:
+            if referee_data != None and \
+                (referee_data['Command'] == 'GOAL_BLUE' or
+                 referee_data['Command'] == 'GOAL_YELLOW'):
+                purple_print('\nGoal!')
+                self.manager_fsm.challenge_external_event(ChallengeEvents.GOAL)
+            elif referee_data != None and referee_data['Command'] == 'STOP':
+                self.manager_fsm.challenge_external_event(ChallengeEvents.STOP)
 
 # =============================================================================
 
@@ -171,8 +176,8 @@ class HWChallengeManager(object):
         gc_command = self.manager_fsm.get_current_command()
 
         if gc_command != GCCommands.NONE:
-            purple_print('Send', gc_command.name)
             self.gc_socket.send_command(gc_command, BLUE_TEAM)
+            purple_print('Sent', gc_command.name)
 
     def challenge_end(self):
         blue_print('Challenge Ended!')

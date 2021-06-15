@@ -7,10 +7,12 @@ from aux.hw_challenge_1 import Challenge_1
 from aux.hw_challenge_2 import Challenge_2
 from aux.hw_challenge_3 import Challenge_3
 from aux.hw_challenge_4 import Challenge_4
+from aux.tc_ball_placement import BallPlacement
 
 from aux.challenge_aux import ChallengeSteps, ChallengeEvents, Action
 
 ROBOT_STOP_TRESHOLD = 2  # in seconds
+MAX_CHALLENGES = 5
 
 
 class ChallengeFSM(object):
@@ -25,28 +27,39 @@ class ChallengeFSM(object):
         self.dt_chl = [0, 0]
 
     def challenge_external_event(self, event: ChallengeEvents):
-        if event == ChallengeEvents.GOAL and self.current_challenge.id in [1, 2] or \
-                event == ChallengeEvents.ROBOT_STOPPED and self.current_challenge.id == 3:
-            self.proceed_step()
+        if event == ChallengeEvents.GOAL and self.current_challenge.id in [1, 2]:
+            self.finish_challenge()
 
-            if self.current_step == ChallengeSteps.STEP_0 and \
-                    self.challenge_end_callback != None:
-                self.dt_chl[1] = time.time_ns() / 1e9
+        elif event == ChallengeEvents.ROBOT_STOPPED and self.current_challenge.id == 3:
+            # Subtract the time used to consider if the robot stopped
+            self.dt_chl[1] = self.dt_chl[1] - ROBOT_STOP_TRESHOLD
+            self.finish_challenge()
 
-                # Subtract the time used to consider if the robot stopped
-                if event == ChallengeEvents.ROBOT_STOPPED:
-                    self.dt_chl[1] = self.dt_chl[1] - ROBOT_STOP_TRESHOLD
+        elif event == ChallengeEvents.STOP and self.current_challenge.id == 5:
+            dt = self.dt_cmd[1] - self.dt_cmd[0]
+            if dt > 2 and self.current_step == ChallengeSteps.STEP_4:
+                purple_print('\nStop!')
+                self.finish_challenge()
 
-                blue_print('Stop challenge timer!')
+    def finish_challenge(self):
+        self.proceed_step()
 
-                self.challenge_end_callback()
+        if self.current_step == ChallengeSteps.STEP_0 and \
+                self.challenge_end_callback != None:
+            self.dt_chl[1] = time.time_ns() / 1e9
+
+            blue_print('Stop challenge timer!')
+
+            self.challenge_end_callback()
 
     def set_challenge(self, challenge: int):
         self.current_step = ChallengeSteps.STEP_1
         self.dt_chl = [0, 0]
 
-        if not isinstance(challenge, int) or (challenge < 1 or challenge > 4):
-            raise ValueError('Challenge ID must be between 1 and 4!')
+        if not isinstance(challenge, int) or \
+                (challenge < 1 or challenge > MAX_CHALLENGES):
+            raise ValueError(
+                f'Challenge ID must be between 1 and {MAX_CHALLENGES}!')
 
         if challenge == 1:
             self.current_challenge = Challenge_1
@@ -56,6 +69,8 @@ class ChallengeFSM(object):
             self.current_challenge = Challenge_3
         elif challenge == 4:
             self.current_challenge = Challenge_4
+        elif challenge == 5:
+            self.current_challenge = BallPlacement
 
         green_print('[CHALLENGE FSM] Challenge {} set!'.format(challenge))
 
