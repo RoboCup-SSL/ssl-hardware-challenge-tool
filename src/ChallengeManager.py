@@ -121,9 +121,9 @@ class HWChallengeManager(object):
                 self.ball.update(pos=vision_data['ball'])
                 self.draw.update_ball(self.ball.pos)
 
+            blue_bots = []
+            yellow_bots = []
             if 'bots' in data_keys:
-                blue_bots = []
-                yellow_bots = []
                 for robot in vision_data['bots']:
                     for r_id in range(MAX_ROBOTS):
                         self.blue_robots[r_id].update(obj=robot['obj'],
@@ -136,13 +136,22 @@ class HWChallengeManager(object):
 
                         self.yellow_robots[r_id].update(obj=robot['obj'],
                                                         id=robot['id'])
+                # In case there are no robots in the field, make sure they get
+                # their 'in_vision' state updated
+                if len(vision_data['bots']) == 0:
+                    for r_id in range(MAX_ROBOTS):
+                        self.blue_robots[r_id].update(
+                            id={'number': r_id, 'color': BLUE_TEAM})
+                        self.yellow_robots[r_id].update(
+                            id={'number': r_id, 'color': YELLOW_TEAM})
+
                 blue_bots.extend([bot for bot in self.blue_robots
                                   if bot.in_vision()])
                 yellow_bots.extend([bot for bot in self.yellow_robots
                                     if bot.in_vision()])
 
-                self.draw.update_robots(blue_bots, BLUE_TEAM)
-                self.draw.update_robots(yellow_bots, YELLOW_TEAM)
+            self.draw.update_robots(blue_bots, BLUE_TEAM)
+            self.draw.update_robots(yellow_bots, YELLOW_TEAM)
 
             self.check_challenge_positions()
             self.draw.update_challenge_data(
@@ -226,6 +235,7 @@ class HWChallengeManager(object):
 
 
 # =============================================================================
+
 
     def end_program(self):
         self.running = False

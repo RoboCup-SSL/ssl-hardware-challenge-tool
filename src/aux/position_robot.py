@@ -116,30 +116,22 @@ class PositionFSM(object):
 
         data_keys = list(json_data.keys())
 
-        n_bots, n_ball = 0, 0
+        n_bots = 0
         if 'bots' in data_keys:
             n_bots = len(json_data['bots'])
-        if 'ball' in data_keys:
-            n_ball = len(json_data['ball'])
 
         self.challenge_pos = [Challenge_Data() for i in range(n_bots + 1)]
         self.ball_placement_pos = Challenge_Data()
 
-        if n_ball > 1:
-            for n, ball_data in enumerate(json_data['ball']):
-                if n == 0:
-                    self.use_ball = True
-                    self.challenge_pos[0].from_Ball(
-                        Ball(Position(*tuple(ball_data['pos']))))
-
-                if n == 1:
-                    self.has_ball_placement_data = True
-                    self.ball_placement_pos.from_Ball(
-                        Ball(Position(*tuple(ball_data['pos']))))
-        else:
+        if 'ball' in data_keys:
             self.use_ball = True
             self.challenge_pos[0].from_Ball(
                 Ball(Position(*tuple(json_data['ball']['pos']))))
+
+        if 'ball_placement' in data_keys:
+            self.has_ball_placement_data = True
+            self.ball_placement_pos.from_Ball(
+                Ball(Position(*tuple(json_data['ball_placement']['pos']))))
 
         if n_bots > 0:
             [self.challenge_pos[n+int(self.use_ball)].from_Robot(Robot(obj=bot_data['obj'], id=bot_data['id']))

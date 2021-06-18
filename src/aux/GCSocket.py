@@ -23,7 +23,7 @@ class GCSocket(object):
     def __init__(self):
         self.w_socket = None
         self.RETRY_LIMIT = 20
-        self.placement_pos = [0, 0]
+        self.placement_pos = [0.0, 0.0]
 
         while not self.connect_web_socket() and self.RETRY_LIMIT > 0:
             self.RETRY_LIMIT -= 1
@@ -51,7 +51,8 @@ class GCSocket(object):
         return False
 
     def set_placement_pos(self, pos: [int, int]):
-        self.placement_pos = pos
+        for n, coordinate in enumerate(pos):
+            self.placement_pos[n] = coordinate/1e3
 
     def send_command(self, gc_command: GCCommands, team=None) -> bool:
         if team == None or (team != BLUE_TEAM and team != YELLOW_TEAM):
