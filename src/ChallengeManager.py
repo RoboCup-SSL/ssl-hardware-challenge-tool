@@ -34,9 +34,9 @@ class HWChallengeManager(object):
         args = self.parse_args()
         self.running = False
 
-        self.udp_communication = UDPCommunication(v_port=args['vision_port'],
+        self.udp_communication = UDPCommunication(v_port=int(args['vision_port']),
                                                   v_group=args['vision_ip'],
-                                                  r_port=args['referee_port'],
+                                                  r_port=int(args['referee_port']),
                                                   r_group=args['referee_ip'])
         self.gc_socket = GCSocket()
         self.gc_socket.send_command(GCCommands.HALT)
@@ -235,7 +235,6 @@ class HWChallengeManager(object):
 
 
 # =============================================================================
-
 
     def end_program(self):
         self.running = False
