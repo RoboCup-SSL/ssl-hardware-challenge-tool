@@ -36,7 +36,8 @@ class HWChallengeManager(object):
 
         self.udp_communication = UDPCommunication(v_port=int(args['vision_port']),
                                                   v_group=args['vision_ip'],
-                                                  r_port=int(args['referee_port']),
+                                                  r_port=int(
+                                                      args['referee_port']),
                                                   r_group=args['referee_ip'])
         self.gc_socket = GCSocket()
         self.gc_socket.send_command(GCCommands.HALT)
@@ -161,14 +162,13 @@ class HWChallengeManager(object):
 
     def update_referee_data(self):
         referee_data = self.udp_communication.get_referee_socket_data()
+        ref_cmd = referee_data['Command']
 
         if self.challenge_running:
-            if referee_data != None and \
-                (referee_data['Command'] == 'GOAL_BLUE' or
-                 referee_data['Command'] == 'GOAL_YELLOW'):
-                purple_print('\nGoal!')
+            if referee_data != None and ref_cmd == 'HALT':
+                purple_print(f'\nPossible Goal! - {ref_cmd}')
                 self.manager_fsm.challenge_external_event(ChallengeEvents.GOAL)
-            elif referee_data != None and referee_data['Command'] == 'STOP':
+            elif referee_data != None and ref_cmd == 'STOP':
                 self.manager_fsm.challenge_external_event(ChallengeEvents.STOP)
 
 # =============================================================================
@@ -229,12 +229,13 @@ class HWChallengeManager(object):
             elif dt >= ROBOT_STOP_TRESHOLD:
                 if DEBUG:
                     purple_print('Stop counting')
-                if dist <= DISTANCE_THRESHOLD and dist_start > 500:
+                if dist <= DISTANCE_THRESHOLD and dist_start > 2400:
                     self.manager_fsm.challenge_external_event(
                         ChallengeEvents.ROBOT_STOPPED)
 
 
 # =============================================================================
+
 
     def end_program(self):
         self.running = False
