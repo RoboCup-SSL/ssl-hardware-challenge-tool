@@ -11,7 +11,7 @@ from aux.tc_ball_placement import BallPlacement
 
 from aux.challenge_aux import ChallengeSteps, ChallengeEvents, Action
 
-ROBOT_STOP_TRESHOLD = 2  # in seconds
+ROBOT_STOP_TRESHOLD = 5  # in seconds
 MAX_CHALLENGES = 5
 
 
