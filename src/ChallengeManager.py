@@ -162,13 +162,16 @@ class HWChallengeManager(object):
 
     def update_referee_data(self):
         referee_data = self.udp_communication.get_referee_socket_data()
-        ref_cmd = referee_data['Command']
+        ref_cmd = 'NONE'
+
+        if referee_data != None:
+            ref_cmd = referee_data['Command']
 
         if self.challenge_running:
-            if referee_data != None and ref_cmd == 'HALT':
+            if ref_cmd == 'HALT':
                 purple_print(f'\nPossible Goal! - {ref_cmd}')
                 self.manager_fsm.challenge_external_event(ChallengeEvents.GOAL)
-            elif referee_data != None and ref_cmd == 'STOP':
+            elif ref_cmd == 'STOP':
                 self.manager_fsm.challenge_external_event(ChallengeEvents.STOP)
 
 # =============================================================================
