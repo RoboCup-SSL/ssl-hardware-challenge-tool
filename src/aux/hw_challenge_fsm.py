@@ -119,7 +119,11 @@ class ChallengeFSM(object):
             if self.current_step == ChallengeSteps.STEP_0 and \
                     self.challenge_end_callback != None:
                 self.dt_chl[1] = time.time_ns() / 1e9
-                blue_print('\nStop challenge timer!')
+
+                if timer_ended:
+                    blue_print('\nStop challenge timer - Timeout =(!')
+                else:
+                    blue_print('\nStop challenge timer - Completed =)!')
 
                 self.challenge_end_callback()
 
