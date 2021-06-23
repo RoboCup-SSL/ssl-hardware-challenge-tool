@@ -168,10 +168,11 @@ class HWChallengeManager(object):
             ref_cmd = referee_data['Command']
 
         if self.challenge_running:
-            purple_print(f'\nReferee Command = {ref_cmd}')
             if ref_cmd == 'HALT':
+                purple_print(f'\nReferee Command = {ref_cmd}')
                 self.manager_fsm.challenge_external_event(ChallengeEvents.GOAL)
             elif ref_cmd == 'STOP':
+                purple_print(f'\nReferee Command = {ref_cmd}')
                 self.manager_fsm.challenge_external_event(ChallengeEvents.STOP)
 
 # =============================================================================
