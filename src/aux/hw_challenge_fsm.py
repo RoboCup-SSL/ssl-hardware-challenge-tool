@@ -28,7 +28,7 @@ class ChallengeFSM(object):
 
     def challenge_external_event(self, event: ChallengeEvents):
         if event == ChallengeEvents.GOAL and self.current_challenge.id in [1, 2]:
-            dt = self.dt_chl[1] - self.dt_chl[0]
+            dt = self.dt_cmd[1] - self.dt_cmd[0]
             if dt > 0.5:
                 self.finish_challenge()
             else:
@@ -41,7 +41,7 @@ class ChallengeFSM(object):
 
         elif event == ChallengeEvents.STOP and self.current_challenge.id == 5:
             dt = self.dt_cmd[1] - self.dt_cmd[0]
-            if dt > 2 and self.current_step == ChallengeSteps.STEP_4:
+            if dt > 0.5 and self.current_step == ChallengeSteps.STEP_4:
                 purple_print('\nStop!')
                 self.finish_challenge()
 
