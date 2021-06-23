@@ -12,13 +12,14 @@ automatically.
 - Python 3.8.5
   - [WebSocket](https://pypi.org/project/websocket-client/)
   - Pygame
+  - Numpy
 
 **PS**: Only tested in Ubuntu 20.04.
 
 To install the Python packages run
 
 ```shell
-pip3 install websocket-client pygame tabulate
+pip3 install websocket-client pygame tabulate numpy
 ```
 
 The project already contains de compiled .proto files for Python, but, in case
@@ -72,6 +73,9 @@ If the object (robot/ball) is correctly placed, it's corresponding circle will
 turn light green, as shown in the image below.
 
 ![SSL Hardware Challenge Tool](./resources/positioning.gif)
+
+**NOTE**: If the robot drawing is too big, it is probably because the tool hasn't
+received a geometry packet yet.
 
 ### Warnings
 
