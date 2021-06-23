@@ -29,8 +29,10 @@ class ChallengeFSM(object):
     def challenge_external_event(self, event: ChallengeEvents):
         if event == ChallengeEvents.GOAL and self.current_challenge.id in [1, 2]:
             dt = self.dt_chl[1] - self.dt_chl[0]
-            if dt > 2:
+            if dt > 0.5:
                 self.finish_challenge()
+            else:
+                red_print(f'dt = {dt}')
 
         elif event == ChallengeEvents.ROBOT_STOPPED and self.current_challenge.id == 3:
             # Subtract the time used to consider if the robot stopped
@@ -45,6 +47,7 @@ class ChallengeFSM(object):
 
     def finish_challenge(self):
         self.proceed_step()
+        blue_print('\nFinish Challenge!')
 
         if self.current_step == ChallengeSteps.STEP_0 and \
                 self.challenge_end_callback != None:
