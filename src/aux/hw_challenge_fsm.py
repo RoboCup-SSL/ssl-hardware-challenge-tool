@@ -28,7 +28,9 @@ class ChallengeFSM(object):
 
     def challenge_external_event(self, event: ChallengeEvents):
         if event == ChallengeEvents.GOAL and self.current_challenge.id in [1, 2]:
-            self.finish_challenge()
+            dt = self.dt_chl[1] - self.dt_chl[0]
+            if dt > 2:
+                self.finish_challenge()
 
         elif event == ChallengeEvents.ROBOT_STOPPED and self.current_challenge.id == 3:
             # Subtract the time used to consider if the robot stopped
