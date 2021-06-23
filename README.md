@@ -13,13 +13,14 @@ automatically.
   - [WebSocket](https://pypi.org/project/websocket-client/)
   - Pygame
   - Numpy
+  - Protobuf
 
 **PS**: Only tested in Ubuntu 20.04.
 
 To install the Python packages run
 
 ```shell
-pip3 install websocket-client pygame tabulate numpy
+pip3 install websocket-client pygame tabulate numpy protobuf
 ```
 
 The project already contains de compiled .proto files for Python, but, in case

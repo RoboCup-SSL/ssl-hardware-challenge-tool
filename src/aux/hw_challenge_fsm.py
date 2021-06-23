@@ -31,8 +31,6 @@ class ChallengeFSM(object):
             dt = self.dt_cmd[1] - self.dt_cmd[0]
             if dt > 0.5:
                 self.finish_challenge()
-            else:
-                red_print(f'dt = {dt}')
 
         elif event == ChallengeEvents.ROBOT_STOPPED and self.current_challenge.id == 3:
             # Subtract the time used to consider if the robot stopped

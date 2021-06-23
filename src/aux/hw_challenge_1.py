@@ -44,7 +44,7 @@ class Challenge_1(object):
     @staticmethod
     def check_restriction(robots: [Robot]) -> (bool, int):
         away_from_line = [1 for bot in robots
-                          if abs(bot.pos.x) > DISTANCE_THRESHOLD and
+                          if abs(bot.pos.x) > 3*DISTANCE_THRESHOLD and
                           bot.in_vision()]
 
         if np.sum(np.array(away_from_line)) > 0:

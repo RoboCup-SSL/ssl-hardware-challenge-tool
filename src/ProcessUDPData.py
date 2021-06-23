@@ -16,7 +16,7 @@ from aux.utils import red_print, blue_print, green_print, purple_print
 from aux.RobotBall import BLUE_TEAM, YELLOW_TEAM
 
 DEBUG = False
-DEFAULT_VISION_PORT = 10020
+DEFAULT_VISION_PORT = 1006
 DEFAULT_VISION_IP = '224.5.23.2'
 
 DEFAULT_REFEREE_PORT = 10003
@@ -39,6 +39,7 @@ class UDPCommunication(object):
     def init_socket(self, socket_obj: socket, group, port):
         socket_obj.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         socket_obj.bind((group, port))
+        green_print(f'Connecting to {group}:{port}...')
 
         mreq = struct.pack('4sl', socket.inet_aton(group), socket.INADDR_ANY)
         socket_obj.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP,
