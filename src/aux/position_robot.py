@@ -171,8 +171,8 @@ class PositionFSM(object):
 
             if yellow_not_in_json > 0:
                 extra_robots_ok = False
-                red_print(
-                    f'[POSITION FSM] There are {yellow_not_in_json} extra yellow robots in the field, please remove them!')
+#                  red_print(
+#                      f'[POSITION FSM] There are {yellow_not_in_json} extra yellow robots in the field, please remove them!')
 
             if blue_not_in_json > 0:
                 extra_robots_ok = extra_robots_ok & self.check_extra_robots(blue_robots,
@@ -204,14 +204,14 @@ class PositionFSM(object):
 
         if robot_ids > self.max_attackers():
             ok = False
-            red_print("""[POSITION FSM] There are extra blue robots in the field
-                         \t Found = {}, Max = {}""".format(robot_ids,
-                                                           self.max_attackers()))
+#              red_print("""[POSITION FSM] There are extra blue robots in the field
+#                           \t Found = {}, Max = {}""".format(robot_ids,
+#                                                             self.max_attackers()))
         elif robot_ids < self.min_attackers():
             ok = False
-            red_print("""[POSITION FSM] Not enough blue robots in the field
-                         \t Found = {}, Min = {}""".format(robot_ids,
-                                                           self.min_attackers()))
+#              red_print("""[POSITION FSM] Not enough blue robots in the field
+#                           \t Found = {}, Min = {}""".format(robot_ids,
+#                                                             self.min_attackers()))
 
         # If the number of robots is ok, check their positions
         if ok:

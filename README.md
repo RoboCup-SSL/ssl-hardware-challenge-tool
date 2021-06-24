@@ -33,7 +33,17 @@ the `proto` folder and then use the included script:
 
 ## Usage
 
-Open the GameController and run the `ChallengeManager.py` with:
+Before starting any challenge make sure that all the following conditions are
+met:
+
+. Both GameController and AutoRef (Preferably TIGERs) must be used
+. The tool must run in the same computer as the GC
+. The GC must be set to accept all proposals
+. The AutoRef must be set to *active*
+. The game state must be either First Half or Second Half
+. Make sure the goal positions for each team are configured correctly in the GC
+
+At last, run the `ChallengeManager.py` with:
 
 ```shell
 python3 src/ChallengeManager.py -f <challenge_positions.json> -c <challenge_number>
@@ -44,6 +54,9 @@ python3 src/ChallengeManager.py -f <challenge_positions.json> -c <challenge_numb
 - **challenge_number**: is the **id** of the challenge, must be between 1 and 5.
 
 **NOTE**: Challenge N⁰ 5 is the Technical Challenge - Ball Placement.
+
+**NOTE**: In case there is too much noise in your camera setup, you can enable
+TIGERs AutoRef detection by passing the argument **-A 1**.
 
 Example:
 

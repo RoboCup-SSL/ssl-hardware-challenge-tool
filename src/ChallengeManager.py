@@ -19,7 +19,7 @@ from aux.utils import red_print, blue_print, green_print, purple_print
 from aux.hw_challenge_fsm import ChallengeFSM, ROBOT_STOP_TRESHOLD
 from aux.challenge_aux import ChallengeEvents
 
-DEBUG = False
+DEBUG = True
 MAX_ROBOTS = 16
 
 
@@ -38,7 +38,8 @@ class HWChallengeManager(object):
                                                   v_group=args['vision_ip'],
                                                   r_port=int(
                                                       args['referee_port']),
-                                                  r_group=args['referee_ip'])
+                                                  r_group=args['referee_ip'],
+                                                  use_autoref=bool(int(args['use_autoref_data'])))
         self.gc_socket = GCSocket()
         self.gc_socket.send_command(GCCommands.HALT)
 
@@ -71,7 +72,7 @@ class HWChallengeManager(object):
         if DEBUG:
             arg_parser.add_argument('-f', '--challenge-file', required=False,
                                     help='JSON file that contains the challenge positioning',
-                                    default='./example.json')
+                                    default='./json_examples/challenge_2.json')
             arg_parser.add_argument('-c', '--challenge-number', required=False,
                                     help='ID of the hardware challenge, must be between 1 and 4',
                                     default=2)
@@ -98,6 +99,10 @@ class HWChallengeManager(object):
                                     DEFAULT_REFEREE_IP),
                                 default=DEFAULT_REFEREE_IP)
 
+        arg_parser.add_argument('-A', '--use-autoref-data', required=False,
+                                help='Indicates wheter to use the autoref tracked data (1/0), default is 0',
+                                default=0)
+
         return vars(arg_parser.parse_args())
 
 # =============================================================================
@@ -112,7 +117,8 @@ class HWChallengeManager(object):
     def update_vision_data(self):
         vision_data, geometry_data = self.udp_communication.get_vision_socket_data()
 
-        if geometry_data != None:
+        if geometry_data != None and 'field_size' in geometry_data.keys() and \
+                'center_circle' in geometry_data.keys():
             self.draw.set_field_size(geometry_data['field_size'])
             self.draw.set_center_circle_radius(geometry_data['center_circle'])
 
@@ -239,7 +245,6 @@ class HWChallengeManager(object):
 
 
 # =============================================================================
-
 
     def end_program(self):
         self.running = False
