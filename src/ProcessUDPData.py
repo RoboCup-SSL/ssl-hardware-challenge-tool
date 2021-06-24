@@ -4,7 +4,6 @@ import pickle
 import time
 import numpy as np
 from google.protobuf.message import DecodeError
-import proto
 
 from socket import timeout as TimeoutException
 
