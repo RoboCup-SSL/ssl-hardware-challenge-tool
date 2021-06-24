@@ -36,12 +36,12 @@ the `proto` folder and then use the included script:
 Before starting any challenge make sure that all the following conditions are
 met:
 
-. Both GameController and AutoRef (Preferably TIGERs) must be used
-. The tool must run in the same computer as the GC
-. The GC must be set to accept all proposals
-. The AutoRef must be set to *active*
-. The game state must be either First Half or Second Half
-. Make sure the goal positions for each team are configured correctly in the GC
+- Both GameController and AutoRef (Preferably TIGERs) must be used
+- The tool must run in the same computer as the GC
+- The GC must be set to accept all proposals
+- The AutoRef must be set to *active*
+- The game state must be either First Half or Second Half
+- Make sure the goal positions for each team are configured correctly in the GC
 
 At last, run the `ChallengeManager.py` with:
 
