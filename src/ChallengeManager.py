@@ -19,7 +19,7 @@ from aux.utils import red_print, blue_print, green_print, purple_print
 from aux.hw_challenge_fsm import ChallengeFSM, ROBOT_STOP_TRESHOLD
 from aux.challenge_aux import ChallengeEvents
 
-DEBUG = True
+DEBUG = False
 MAX_ROBOTS = 16
 
 

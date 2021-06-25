@@ -33,8 +33,6 @@ class ChallengeFSM(object):
                 self.finish_challenge()
 
         elif event == ChallengeEvents.ROBOT_STOPPED and self.current_challenge.id == 3:
-            # Subtract the time used to consider if the robot stopped
-            self.dt_chl[1] = self.dt_chl[1] - ROBOT_STOP_TRESHOLD
             self.finish_challenge()
 
         elif event == ChallengeEvents.STOP and self.current_challenge.id == 5:
@@ -91,7 +89,10 @@ class ChallengeFSM(object):
             self.current_step = ChallengeSteps.STEP_0
 
     def get_challenge_time(self):
-        return self.dt_chl[1] - self.dt_chl[0]
+        ch_time = self.dt_chl[1] - self.dt_chl[0]
+        if self.current_challenge.id == 3:
+            ch_time = ch_time - ROBOT_STOP_TRESHOLD
+        return ch_time
 
     def get_current_command(self) -> GCCommands:
         action = self.current_challenge.Step(self.current_step)

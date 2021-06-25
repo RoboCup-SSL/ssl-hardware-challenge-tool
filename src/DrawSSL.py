@@ -275,7 +275,7 @@ class DrawSSL(object):
 
             c_pos = self.scale(position.pos.to_numpy(), scaled_field)
             c_rad = self.scale_rad(BOT_RADIUS)
-            pygame.draw.circle(self.window, color, c_pos, c_rad, width=2)
+            pygame.draw.circle(self.window, color, c_pos, c_rad, width=4)
 
             if not draw_orientation:
                 continue
