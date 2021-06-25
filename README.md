@@ -38,7 +38,8 @@ met:
 
 - Both GameController and AutoRef (Preferably TIGERs) must be used
 - The tool must run in the same computer as the GC
-- The GC must be set to accept all proposals
+- The GC must be set to accept GOAL and POSSIBLE_GOAL proposals, the others can
+  be turned off
 - The AutoRef must be set to *active*
 - The game state must be either First Half or Second Half
 - Make sure the goal positions for each team are configured correctly in the GC
