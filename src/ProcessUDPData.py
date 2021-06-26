@@ -224,8 +224,8 @@ class UDPCommunication(object):
         if vis_ok or ar_ok:
             return (self.detection_frame_to_dict(det_data),
                     self.geometry_frame_to_dict(geo_data))
-        else:
-            red_print('[UDP] Failed to process vision packet!', '\r')
+#          else:
+#              red_print('[UDP] Failed to process vision packet!', '\r')
         return (None, None)
 
     def get_vision_packet(self):

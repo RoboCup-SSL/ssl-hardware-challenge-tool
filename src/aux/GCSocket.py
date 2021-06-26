@@ -44,7 +44,8 @@ class GCSocket(object):
             self.w_socket = websocket.create_connection(WEB_SOCKET_URL)
             return True
         except ConnectionRefusedError:
-            red_print('[W Socket] Failed to connect to the Game Controller!')
+            red_print(
+                '[W Socket] Failed to connect to the Game Controller! Make sure the Port is correct')
         except Exception as expt:
             red_print('[W Socket]', expt)
         blue_print('Trying again...')
